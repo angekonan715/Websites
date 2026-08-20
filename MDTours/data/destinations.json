@@ -1,0 +1,82 @@
+[
+  {
+    "id": "accra",
+    "country": "GHANA",
+    "title": "Accra City Escape",
+    "duration": "5 jours / 4 nuits",
+    "price": 299000,
+    "rating": 4.8,
+    "reviews": 125,
+    "image": "/images/accra.png"
+  },
+  {
+    "id": "cape-coast",
+    "country": "GHANA",
+    "title": "Cape Coast Heritage",
+    "duration": "4 jours / 3 nuits",
+    "price": 259000,
+    "rating": 4.7,
+    "reviews": 98,
+    "image": "/images/cape-coast.png"
+  },
+  {
+    "id": "kwame-nkrumah",
+    "country": "GHANA",
+    "title": "Mémorial Kwame Nkrumah",
+    "duration": "5 jours / 4 nuits",
+    "price": 279000,
+    "rating": 4.9,
+    "reviews": 112,
+    "image": "/images/kwame-nkrumah.png"
+  },
+  {
+    "id": "akwaba",
+    "country": "GHANA",
+    "title": "Akwaba Experience",
+    "duration": "6 jours / 5 nuits",
+    "price": 349000,
+    "rating": 4.9,
+    "reviews": 145,
+    "image": "/images/waterfall.png"
+  },
+  {
+    "id": "boti-falls",
+    "country": "GHANA",
+    "title": "Boti Falls",
+    "duration": "3 jours / 2 nuits",
+    "price": 189000,
+    "rating": 4.8,
+    "reviews": 86,
+    "image": "/images/boti-waterfall.png"
+  },
+  {
+    "id": "mole",
+    "country": "GHANA",
+    "title": "Safari Mole",
+    "duration": "6 jours / 5 nuits",
+    "price": 429000,
+    "rating": 4.9,
+    "reviews": 74,
+    "image": "/images/mole-national-park.png"
+  },
+  {
+    "id": "beach-resort",
+    "country": "GHANA",
+    "title": "Beach Resort",
+    "duration": "4 jours / 3 nuits",
+    "price": 319000,
+    "rating": 4.7,
+    "reviews": 103,
+    "image": "/images/beach.png"
+  },
+  {
+    "id": "senegal",
+    "title": "Senegal",
+    "country": "GHANA",
+    "duration": "5 jours / 4 nuits",
+    "price": 350002,
+    "rating": 5,
+    "reviews": 0,
+    "image": "/images/senegal.webp"
+  }
+]

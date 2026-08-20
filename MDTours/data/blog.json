@@ -1,0 +1,29 @@
+[
+  {
+    "id": "cape-coast-memoire",
+    "slug": "cape-coast-voyage-memoire",
+    "title": "Cape Coast : voyager avec mémoire et respect",
+    "excerpt": "Pourquoi Cape Coast reste une étape essentielle pour comprendre le Ghana d’hier et d’aujourd’hui.",
+    "content": "Cape Coast n’est pas seulement un décor côtier. Les forts, l’océan et les récits transmis sur place invitent à un voyage plus profond.\n\nChez MD Tours, nous préparons cette visite avec des guides qui prennent le temps d’expliquer, d’écouter et de laisser de l’espace aux émotions. C’est ainsi que le voyage devient une expérience, pas seulement un itinéraire.",
+    "image": "/images/cape-coast.png",
+    "date": "2026-04-08"
+  },
+  {
+    "id": "mole-safari",
+    "slug": "premiere-fois-safari-mole",
+    "title": "Première fois en safari à Mole : nos conseils",
+    "excerpt": "Comment préparer un séjour à Mole National Park, même si vous n’avez jamais fait de safari.",
+    "content": "Mole offre une rencontre rare avec la faune ouest-africaine : éléphants, cobes, oiseaux et paysages de savane.\n\nNous recommandons des départs tôt le matin, des vêtements discrets, et surtout un rythme sans précipitation. MD Tours s’occupe des transferts, de l’hébergement et de l’accompagnement pour que vous puissiez simplement observer.",
+    "image": "/images/mole-national-park.png",
+    "date": "2026-05-21"
+  },
+  {
+    "id": "accra-autrement",
+    "slug": "accra-autrement",
+    "title": "Accra autrement : marchés, mémoire et bord de mer",
+    "excerpt": "Découvrir la capitale ghanéenne au-delà des cartes postales, avec un rythme local.",
+    "content": "Accra se vit dans ses marchés, ses monuments et ses plages. Un city-break bien construit mélange le Mémorial Kwame Nkrumah, Independence Arch, et des moments plus calmes en bord de mer.\n\nC’est exactement l’esprit MD Tours : voyagez autrement, vivez l’Afrique intensément, sans courir.",
+    "image": "/images/accra.png",
+    "date": "2026-07-03"
+  }
+]

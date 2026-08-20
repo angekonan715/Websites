@@ -1,0 +1,34 @@
+[
+  {
+    "id": "accra-2025",
+    "title": "Week-end à Accra",
+    "location": "Accra, Ghana",
+    "date": "2025-11-12",
+    "description": "City tour, Independence Arch et soirée en bord de mer avec un groupe MD Tours.",
+    "images": ["/images/accra.png", "/images/kwame-nkrumah.png", "/images/beach.png"]
+  },
+  {
+    "id": "cape-coast-2026",
+    "title": "Cape Coast Heritage",
+    "location": "Cape Coast, Ghana",
+    "date": "2026-02-08",
+    "description": "Visite des forts, rencontre avec des guides locaux et souvenirs en images.",
+    "images": ["/images/cape-coast.png"]
+  },
+  {
+    "id": "mole-2026",
+    "title": "Safari Mole",
+    "location": "Mole National Park, Ghana",
+    "date": "2026-03-21",
+    "description": "Observation des éléphants et de la savane, un grand moment pour le groupe.",
+    "images": ["/images/mole-national-park.png", "/images/waterfall.png"]
+  },
+  {
+    "id": "boti-2026",
+    "title": "Chutes de Boti",
+    "location": "Boti, Ghana",
+    "date": "2026-05-04",
+    "description": "Randonnée, cascade et pause nature au cœur de la forêt.",
+    "images": ["/images/boti-waterfall.png"]
+  }
+]

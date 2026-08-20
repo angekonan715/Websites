@@ -1,0 +1,23 @@
+[
+  {
+    "id": "13ae3b1c-c08a-42c2-86ba-3a1e776adfd6",
+    "reference": "MDT-9FSRFX",
+    "userId": "edae95b4-8b5c-4eeb-b624-4877c4e885f6",
+    "destinationId": "accra",
+    "destinationTitle": "Accra City Escape",
+    "country": "GHANA",
+    "duration": "5 jours / 4 nuits",
+    "image": "/images/accra.png",
+    "name": "Ange Konan",
+    "email": "angekk419@gmail.com",
+    "phone": "8014192099",
+    "departureDate": "2026-08-19",
+    "travelers": 7,
+    "unitPrice": 299000,
+    "totalPrice": 2093000,
+    "notes": "Nous voulons un voyage specailise",
+    "status": "awaiting_contact",
+    "createdAt": "2026-08-19T18:18:14.977Z",
+    "updatedAt": "2026-08-19T18:18:14.977Z"
+  }
+]

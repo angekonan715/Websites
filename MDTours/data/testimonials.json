@@ -1,0 +1,35 @@
+[
+  {
+    "id": "t1",
+    "userId": "seed",
+    "authorName": "Awa K.",
+    "tripTitle": "Accra City Escape",
+    "rating": 5,
+    "message": "Organisation parfaite du début à la fin. MD Tours nous a fait vivre Accra autrement, avec chaleur et professionnalisme.",
+    "status": "approved",
+    "inviteToken": "seed",
+    "createdAt": "2026-03-12T10:00:00.000Z"
+  },
+  {
+    "id": "t2",
+    "userId": "seed",
+    "authorName": "Jean-Marc D.",
+    "tripTitle": "Safari Mole",
+    "rating": 5,
+    "message": "Le safari à Mole restera un souvenir inoubliable. Encadrement rassurant et moments magiques avec les éléphants.",
+    "status": "approved",
+    "inviteToken": "seed",
+    "createdAt": "2026-05-02T10:00:00.000Z"
+  },
+  {
+    "id": "t3",
+    "userId": "seed",
+    "authorName": "Fatou B.",
+    "tripTitle": "Cape Coast Heritage",
+    "rating": 4.8,
+    "message": "Un voyage émouvant et très bien accompagné. Merci à l’équipe MD Tours pour l’écoute et les explications sur place.",
+    "status": "approved",
+    "inviteToken": "seed",
+    "createdAt": "2026-06-18T10:00:00.000Z"
+  }
+]
