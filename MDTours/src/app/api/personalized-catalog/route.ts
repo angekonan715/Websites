@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: "Activité introuvable." }, { status: 404 });
       }
     } else if (activity?.name?.trim() && activity.cityId) {
-      let city: PersonalizedCity | undefined = catalog.cities.find(
+      const city: PersonalizedCity | undefined = catalog.cities.find(
         (item) => item.id === activity.cityId
       );
       if (!city) {
