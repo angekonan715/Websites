@@ -42,9 +42,9 @@ export default async function HistoriqueDetailPage({
         ) : null}
 
         {trip.images.length > 0 ? (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-2 gap-2 sm:gap-4">
             {trip.images.map((src) => (
-              <div key={src} className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+              <div key={src} className="relative aspect-[4/3] overflow-hidden rounded-lg sm:rounded-2xl">
                 <Image src={src} alt={trip.title} fill className="object-cover" />
               </div>
             ))}

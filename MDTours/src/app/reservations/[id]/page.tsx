@@ -51,7 +51,7 @@ export default function ReservationDetailPage() {
         {reservation && (
           <div className="space-y-6">
             <div className="overflow-hidden rounded-2xl bg-white shadow-search">
-              <div className="relative h-48">
+              <div className="relative aspect-[16/9] sm:aspect-[2/1]">
                 <Image
                   src={reservation.image}
                   alt={reservation.destinationTitle}

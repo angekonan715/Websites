@@ -23,7 +23,7 @@ export default async function VoyagePage({
       <Header variant="solid" />
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:gap-10 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
         <article>
-          <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-navy">
+          <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-navy sm:aspect-[16/10] sm:rounded-2xl">
             {destination.video ? (
               <video
                 controls
@@ -45,9 +45,9 @@ export default async function VoyagePage({
           </div>
 
           {gallery.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-3">
               {gallery.map((photo) => (
-                <div key={photo} className="relative aspect-square overflow-hidden rounded-xl">
+                <div key={photo} className="relative aspect-[4/3] overflow-hidden rounded-lg sm:aspect-square sm:rounded-xl">
                   <Image src={photo} alt="" fill className="object-cover" />
                 </div>
               ))}

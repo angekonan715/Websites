@@ -31,7 +31,7 @@ const socialLinks = [
 export default function Hero() {
   return (
     <section className="relative">
-      <div className="relative min-h-[min(92svh,820px)] overflow-hidden pb-28 sm:min-h-[78vh] sm:pb-24">
+      <div className="relative min-h-[20.5rem] overflow-hidden pb-20 sm:min-h-[28rem] sm:pb-24 lg:min-h-[78vh]">
       {heroMedia.video ? (
         <video
           autoPlay
@@ -58,9 +58,9 @@ export default function Hero() {
 
       <Header />
 
-      <div className="relative mx-auto flex max-w-7xl flex-col justify-center px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32 lg:px-8 lg:pb-24 lg:pt-40">
+      <div className="relative mx-auto flex max-w-7xl flex-col justify-center px-4 pb-10 pt-24 sm:px-6 sm:pb-16 sm:pt-28 lg:px-8 lg:pb-24 lg:pt-40">
         <div className="max-w-2xl">
-          <h1 className="text-[1.85rem] font-bold leading-tight text-white sm:text-5xl lg:text-[3.25rem] lg:leading-[1.15]">
+          <h1 className="text-[1.7rem] font-bold leading-tight text-white sm:text-4xl lg:text-[3.25rem] lg:leading-[1.15]">
             <span className="relative inline-block">
               Voyagez autrement.
               <span className="absolute -bottom-1 left-0 h-0.5 w-16 bg-white/60" />
@@ -72,12 +72,12 @@ export default function Hero() {
             Des expériences uniques, des souvenirs inoubliables et un
             accompagnement de qualité.
           </p>
-          <div className="mt-6 flex w-full flex-col gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
-            <a href="#reserver" className="btn-gold w-full sm:w-auto">
+          <div className="mt-5 flex flex-wrap items-center gap-3 sm:mt-8 sm:gap-4">
+            <a href="#reserver" className="btn-gold">
               Réserver maintenant
               <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="/voyages" className="btn-outline-white w-full sm:w-auto">
+            <a href="/voyages" className="btn-outline-white">
               <PlayCircle className="h-5 w-5" />
               Découvrir nos voyages
             </a>
@@ -100,7 +100,7 @@ export default function Hero() {
 
       </div>
 
-      <div className="relative z-40 -mt-16 px-3 sm:-mt-16 sm:px-6 lg:px-8">
+      <div className="relative z-40 -mt-12 px-3 sm:-mt-16 sm:px-6 lg:px-8">
         <SearchBar />
       </div>
     </section>

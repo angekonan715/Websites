@@ -47,16 +47,16 @@ export default async function HistoriquePage() {
             Les souvenirs de voyage seront bientôt publiés ici.
           </p>
         ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
             {trips.map((trip) => {
               const cover = trip.images[0] ?? "/background/hero.png";
               return (
                 <a
                   key={trip.id}
                   href={`/historique/${trip.id}`}
-                  className="overflow-hidden rounded-2xl bg-white shadow-card transition-shadow hover:shadow-lg"
+                  className="overflow-hidden rounded-xl bg-white shadow-card transition-shadow hover:shadow-lg sm:rounded-2xl"
                 >
-                  <div className="relative h-56">
+                  <div className="relative aspect-[16/10] sm:aspect-[4/3]">
                     <Image
                       src={cover}
                       alt={trip.title}
@@ -64,26 +64,26 @@ export default async function HistoriquePage() {
                       className="object-cover"
                     />
                     {trip.video ? (
-                      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-xs font-medium text-white">
+                      <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white sm:bottom-3 sm:right-3 sm:px-2.5 sm:py-1 sm:text-xs">
                         <PlayCircle className="h-3.5 w-3.5" />
                         Vidéo
                       </span>
                     ) : null}
                   </div>
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-navy">{trip.title}</h3>
-                    <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500">
-                      <MapPin className="h-4 w-4 text-gold" />
+                  <div className="p-3 sm:p-5">
+                    <h3 className="text-sm font-bold text-navy sm:text-lg">{trip.title}</h3>
+                    <p className="mt-1.5 flex items-start gap-1.5 text-xs text-gray-500 sm:mt-2 sm:items-center sm:text-sm">
+                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold sm:mt-0 sm:h-4 sm:w-4" />
                       {trip.location}
                     </p>
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
-                      <Calendar className="h-4 w-4 text-gold" />
+                    <p className="mt-1 flex items-start gap-1.5 text-xs text-gray-500 sm:items-center sm:text-sm">
+                      <Calendar className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold sm:mt-0 sm:h-4 sm:w-4" />
                       {new Date(`${trip.date}T00:00:00`).toLocaleDateString(
                         "fr-FR",
                         { day: "numeric", month: "long", year: "numeric" }
                       )}
                     </p>
-                    <p className="mt-3 line-clamp-2 text-sm text-gray-600">
+                    <p className="mt-3 hidden line-clamp-2 text-sm text-gray-600 sm:block">
                       {trip.description}
                     </p>
                     <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gold">
@@ -119,14 +119,14 @@ export default async function HistoriquePage() {
               Les premiers témoignages seront publiés ici.
             </p>
           ) : (
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
               {testimonials.map((item) => (
                 <article
                   key={item.id}
                   className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-card"
                 >
                   {(item.images ?? []).length === 1 ? (
-                    <div className="relative h-44">
+                    <div className="relative aspect-[16/9] sm:aspect-[16/10]">
                       <Image
                         src={item.images![0]}
                         alt=""
@@ -137,13 +137,13 @@ export default async function HistoriquePage() {
                   ) : (item.images ?? []).length > 1 ? (
                     <div className="grid grid-cols-2 gap-1">
                       {(item.images ?? []).slice(0, 4).map((src) => (
-                        <div key={src} className="relative h-28">
+                        <div key={src} className="relative aspect-[4/3]">
                           <Image src={src} alt="" fill className="object-cover" />
                         </div>
                       ))}
                     </div>
                   ) : null}
-                  <div className="flex flex-1 flex-col p-6">
+                  <div className="flex flex-1 flex-col p-4 sm:p-6">
                     <div className="flex gap-1">
                       {Array.from({ length: 5 }).map((_, index) => (
                         <Star

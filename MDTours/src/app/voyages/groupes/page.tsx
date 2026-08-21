@@ -20,7 +20,7 @@ export default async function GroupTripsPage() {
             Aucun voyage groupé n’est publié pour le moment.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {destinations.map((dest) => (
               <TripCard key={dest.id} dest={dest} />
             ))}
