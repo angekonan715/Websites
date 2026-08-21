@@ -7,9 +7,10 @@ export default function TestimonyThanksPage() {
       <div className="mx-auto max-w-xl px-4 py-20 text-center">
         <h1 className="text-3xl font-bold text-navy">Merci pour votre témoignage</h1>
         <p className="mt-4 text-sm text-gray-600">
-          MD Tours le lira avant publication.
+          Votre témoignage est déjà en ligne sur l’historique. Merci de
+          partager votre expérience.
         </p>
-        <a href="/historique" className="btn-gold mt-8 inline-flex">
+        <a href="/historique#temoignages" className="btn-gold mt-8 inline-flex">
           Voir l’historique
         </a>
       </div>

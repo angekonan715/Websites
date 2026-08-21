@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ImagePlus, X } from "lucide-react";
 import Header from "@/components/Header";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -13,10 +14,22 @@ export default function NewTestimonialForm() {
   const [tripTitle, setTripTitle] = useState("");
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState("");
+  const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [inviteError, setInviteError] = useState("");
   const [saving, setSaving] = useState(false);
   const [valid, setValid] = useState(false);
+
+  const previews = useMemo(
+    () => photos.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
+    [photos]
+  );
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((item) => URL.revokeObjectURL(item.url));
+    };
+  }, [previews]);
 
   useEffect(() => {
     if (!token) {
@@ -32,15 +45,27 @@ export default function NewTestimonialForm() {
       .catch(() => setInviteError("Impossible de vérifier le lien."));
   }, [token]);
 
+  function addPhotos(files: FileList | null) {
+    if (!files) return;
+    const incoming = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    setPhotos((current) => [...current, ...incoming].slice(0, 8));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setSaving(true);
     try {
+      const formData = new FormData();
+      formData.set("token", token);
+      formData.set("tripTitle", tripTitle);
+      formData.set("rating", String(rating));
+      formData.set("message", message);
+      photos.forEach((file) => formData.append("images", file));
+
       const response = await fetch("/api/testimonials", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, tripTitle, rating, message }),
+        body: formData,
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -61,8 +86,8 @@ export default function NewTestimonialForm() {
       <div className="mx-auto max-w-xl px-4 py-14">
         <h1 className="text-3xl font-bold text-navy">Partager votre témoignage</h1>
         <p className="mt-2 text-sm text-gray-500">
-          Connectez-vous, puis racontez votre voyage. L’avis est lu par MD Tours
-          avant publication.
+          Racontez votre voyage et joignez des photos. Votre témoignage est
+          publié tout de suite sur l’historique.
         </p>
 
         {!loading && !user && (
@@ -120,6 +145,48 @@ export default function NewTestimonialForm() {
                 className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
               />
             </label>
+            <div>
+              <p className="text-sm font-medium text-navy">Photos du voyage</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Jusqu’à 8 photos (JPG, PNG ou WEBP).
+              </p>
+              <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-8 text-center hover:border-gold">
+                <ImagePlus className="h-6 w-6 text-gold" />
+                <span className="mt-2 text-sm font-semibold text-navy">
+                  Ajouter des photos
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  className="sr-only"
+                  onChange={(e) => {
+                    addPhotos(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {previews.length > 0 && (
+                <div className="mt-3 grid grid-cols-4 gap-2">
+                  {previews.map((item, index) => (
+                    <div key={item.url} className="relative aspect-square overflow-hidden rounded-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.url} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        aria-label="Retirer la photo"
+                        onClick={() =>
+                          setPhotos((current) => current.filter((_, i) => i !== index))
+                        }
+                        className="absolute right-1 top-1 rounded-full bg-black/70 p-1 text-white"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}

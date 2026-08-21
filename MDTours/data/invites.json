@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "e05e481b-ded0-4bda-842d-f0b4b6d9d96b",
+    "token": "78b14c657c9946a7890899ae0341a218",
+    "note": "angekou",
+    "createdAt": "2026-08-20T16:10:05.536Z",
+    "expiresAt": "2026-09-19T16:10:05.536Z",
+    "usedAt": "2026-08-20T16:12:10.031Z",
+    "usedBy": "admin"
+  }
+]

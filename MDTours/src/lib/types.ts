@@ -78,6 +78,7 @@ export interface Testimonial {
   status: "pending" | "approved" | "rejected";
   inviteToken: string;
   createdAt: string;
+  images?: string[];
 }
 
 export interface TestimonyInvite {
