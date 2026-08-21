@@ -42,7 +42,7 @@ export default function SearchBar() {
       onSubmit={handleSubmit}
       className="mx-auto w-full max-w-5xl"
     >
-      <div className="grid grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-search sm:grid-cols-2 lg:grid-cols-[1.2fr_1.1fr_0.9fr_auto]">
+      <div className="grid grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-search sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_auto]">
         <label className="flex cursor-text items-center gap-3 border-b border-gray-100 px-5 py-4 sm:border-b-0 sm:border-r lg:py-5">
           <MapPin className="h-5 w-5 shrink-0 text-gold" strokeWidth={2} />
           <span className="min-w-0 flex-1">
@@ -78,12 +78,12 @@ export default function SearchBar() {
               min={today}
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-0.5 w-full bg-transparent text-sm font-medium text-navy outline-none"
+              className="mt-0.5 w-full min-w-0 bg-transparent text-sm font-medium text-navy outline-none"
             />
           </span>
         </label>
 
-        <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:border-b-0 lg:border-r lg:py-5">
+        <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 sm:border-b-0 sm:border-r lg:py-5">
           <Users className="h-5 w-5 shrink-0 text-gold" strokeWidth={2} />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
@@ -123,13 +123,14 @@ export default function SearchBar() {
           </div>
         </div>
 
-        <div className="flex items-stretch p-3 sm:col-span-2 lg:col-span-1 lg:p-2">
+        <div className="flex items-stretch p-3 sm:p-2 lg:col-span-1">
           <button
             type="submit"
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-gold-dark lg:min-w-[210px] lg:rounded-lg"
           >
             <Search className="h-4 w-4" />
-            Rechercher un voyage
+            <span className="hidden sm:inline">Rechercher un voyage</span>
+            <span className="sm:hidden">Rechercher</span>
           </button>
         </div>
       </div>

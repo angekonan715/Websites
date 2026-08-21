@@ -39,12 +39,12 @@ function Stepper({
   onChange: (value: number) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-100 bg-white px-4 py-4">
-      <div>
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-gray-100 bg-white px-3 py-3 sm:px-4 sm:py-4">
+      <div className="min-w-0">
         <p className="font-semibold text-navy">{label}</p>
         <p className="mt-0.5 text-xs text-gray-500">{hint}</p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           aria-label={`Retirer : ${label}`}
@@ -215,9 +215,12 @@ export default function CustomTripBuilder() {
   const lodgingIcon = { hotel: Building2, residence: BedDouble };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="space-y-8">
-        <section className="rounded-3xl border border-gray-100 p-6 shadow-card">
+    <form
+      onSubmit={handleSubmit}
+      className="relative grid gap-6 pb-28 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:pb-0"
+    >
+      <div className="min-w-0 space-y-6 sm:space-y-8">
+        <section className="rounded-2xl border border-gray-100 p-4 shadow-card sm:rounded-3xl sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">1</p>
           <h2 className="mt-2 flex items-center gap-2 text-xl font-bold text-navy">
             <Users className="h-5 w-5 text-gold" />
@@ -248,7 +251,7 @@ export default function CustomTripBuilder() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-gray-100 p-6 shadow-card">
+        <section className="rounded-2xl border border-gray-100 p-4 shadow-card sm:rounded-3xl sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">2</p>
           <h2 className="mt-2 flex items-center gap-2 text-xl font-bold text-navy">
             <Calendar className="h-5 w-5 text-gold" />
@@ -286,7 +289,7 @@ export default function CustomTripBuilder() {
           )}
         </section>
 
-        <section className="rounded-3xl border border-gray-100 p-6 shadow-card">
+        <section className="rounded-2xl border border-gray-100 p-4 shadow-card sm:rounded-3xl sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">3</p>
           <h2 className="mt-2 text-xl font-bold text-navy">Hébergement</h2>
           <p className="mt-1 text-sm text-gray-500">Hôtel ou résidence meublée.</p>
@@ -319,13 +322,13 @@ export default function CustomTripBuilder() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-gray-100 p-6 shadow-card">
+        <section className="rounded-2xl border border-gray-100 p-4 shadow-card sm:rounded-3xl sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">4</p>
           <h2 className="mt-2 flex items-center gap-2 text-xl font-bold text-navy">
             <Car className="h-5 w-5 text-gold" />
             Véhicule
           </h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(catalog?.vehicles ?? []).map((option) => {
               const selected = vehicle === option.id;
               return (
@@ -348,7 +351,7 @@ export default function CustomTripBuilder() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-gray-100 p-6 shadow-card">
+        <section className="rounded-2xl border border-gray-100 p-4 shadow-card sm:rounded-3xl sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">5</p>
           <h2 className="mt-2 flex items-center gap-2 text-xl font-bold text-navy">
             <MapPin className="h-5 w-5 text-gold" />
@@ -441,7 +444,7 @@ export default function CustomTripBuilder() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-gray-100 p-6 shadow-card">
+        <section className="rounded-2xl border border-gray-100 p-4 shadow-card sm:rounded-3xl sm:p-6">
           <h2 className="text-xl font-bold text-navy">Vos coordonnées</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium text-navy">
@@ -488,14 +491,10 @@ export default function CustomTripBuilder() {
             pour enregistrer ce devis. Le total reste visible pendant que vous composez.
           </p>
         )}
-
-        <button type="submit" disabled={saving || travelers < 1} className="btn-gold lg:hidden">
-          {saving ? "Enregistrement..." : `Réserver · ${formatPrice(quote.total)} FCFA`}
-        </button>
       </div>
 
-      <aside className="lg:sticky lg:top-8 lg:self-start">
-        <div className="rounded-3xl bg-navy p-6 text-white shadow-lg">
+      <aside className="min-w-0 lg:sticky lg:top-8 lg:self-start">
+        <div className="rounded-2xl bg-navy p-5 text-white shadow-lg sm:rounded-3xl sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
             Votre devis
           </p>
@@ -535,6 +534,26 @@ export default function CustomTripBuilder() {
           </p>
         </div>
       </aside>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-100 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur lg:hidden [padding-bottom:max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="mx-auto flex max-w-7xl items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Devis
+            </p>
+            <p className="truncate text-lg font-bold text-navy">
+              {formatPrice(quote.total)} FCFA
+            </p>
+          </div>
+          <button
+            type="submit"
+            disabled={saving || travelers < 1}
+            className="btn-gold shrink-0 px-4 py-2.5 text-xs"
+          >
+            {saving ? "Enregistrement..." : "Enregistrer"}
+          </button>
+        </div>
+      </div>
     </form>
   );
 }

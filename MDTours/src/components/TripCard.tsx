@@ -9,7 +9,7 @@ export default function TripCard({ dest }: { dest: Destination }) {
       href={`/voyages/${dest.id}`}
       className="group relative overflow-hidden rounded-2xl shadow-card transition-transform hover:-translate-y-1"
     >
-      <div className="relative aspect-[4/5] w-full">
+      <div className="relative aspect-[3/4] w-full sm:aspect-[4/5]">
         <Image
           src={dest.image}
           alt={dest.title}

@@ -38,7 +38,7 @@ export default function VoyagesChooserPage() {
             <a
               key={option.href}
               href={option.href}
-              className="group rounded-3xl border border-gray-100 bg-white p-8 shadow-card transition-shadow hover:shadow-lg"
+              className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-card transition-shadow hover:shadow-lg sm:p-8"
             >
               <option.icon className="h-10 w-10 text-gold" />
               <p className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-gold">

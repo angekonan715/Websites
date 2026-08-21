@@ -84,7 +84,7 @@ export default function NewTestimonialForm() {
     <main className="min-h-screen bg-gray-50">
       <Header variant="solid" />
       <div className="mx-auto max-w-xl px-4 py-14">
-        <h1 className="text-3xl font-bold text-navy">Partager votre témoignage</h1>
+        <h1 className="text-2xl font-bold text-navy sm:text-3xl">Partager votre témoignage</h1>
         <p className="mt-2 text-sm text-gray-500">
           Racontez votre voyage et joignez des photos. Votre témoignage est
           publié tout de suite sur l’historique.
@@ -109,7 +109,7 @@ export default function NewTestimonialForm() {
         )}
 
         {user && valid && (
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4 rounded-2xl bg-white p-6 shadow-search">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4 rounded-2xl bg-white p-4 shadow-search sm:p-6">
             <label className="block text-sm font-medium text-navy">
               Voyage effectué
               <input
@@ -167,7 +167,7 @@ export default function NewTestimonialForm() {
                 />
               </label>
               {previews.length > 0 && (
-                <div className="mt-3 grid grid-cols-4 gap-2">
+                <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {previews.map((item, index) => (
                     <div key={item.url} className="relative aspect-square overflow-hidden rounded-lg">
                       {/* eslint-disable-next-line @next/next/no-img-element */}

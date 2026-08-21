@@ -20,7 +20,7 @@ export default function TrustBadges() {
     <section className="px-4 pb-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="rounded-2xl border border-gray-100 bg-gray-50/80 px-6 py-8 sm:px-8">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5 lg:gap-6">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 lg:gap-6">
             {trustBadges.map((badge) => {
               const Icon = iconMap[badge.icon as keyof typeof iconMap];
               return (

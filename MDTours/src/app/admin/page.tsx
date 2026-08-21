@@ -42,7 +42,7 @@ export default function AdminPage() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
           Administration
         </p>
-        <h1 className="mt-2 text-3xl font-bold text-navy">Espace admin</h1>
+        <h1 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">Espace admin</h1>
         <p className="mt-2 text-sm text-gray-500">
           Gérez les voyages groupés, les demandes personnalisées, l’historique
           photos/vidéos, et les avis clients.

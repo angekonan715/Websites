@@ -66,7 +66,7 @@ export default function BookingForm({ destination }: { destination: Destination 
     <form
       id="reserver"
       onSubmit={handleSubmit}
-      className="rounded-2xl bg-white p-6 shadow-search"
+      className="rounded-2xl bg-white p-4 shadow-search sm:p-6"
     >
       <h2 className="text-xl font-bold text-navy">Réserver ce voyage</h2>
       <p className="mt-1 text-sm text-gray-500">

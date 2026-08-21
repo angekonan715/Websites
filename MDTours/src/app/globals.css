@@ -5,14 +5,29 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-white text-navy antialiased;
   }
 
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
   input[type="date"] {
     color-scheme: light;
+    min-width: 0;
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator {
@@ -23,10 +38,10 @@
 
 @layer components {
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-dark;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-dark sm:px-6;
   }
 
   .btn-outline-white {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border-2 border-white bg-transparent px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border-2 border-white bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:px-6;
   }
 }

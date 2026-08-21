@@ -46,7 +46,7 @@ export default function Destinations() {
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
               Destinations Populaires
             </p>
-            <h2 className="mt-2 text-3xl font-bold text-navy sm:text-4xl">
+            <h2 className="mt-2 text-2xl font-bold text-navy sm:text-4xl">
               Où souhaitez-vous partir ?
             </h2>
             {(query || date || voyageurs) && (
@@ -85,7 +85,7 @@ export default function Destinations() {
           </p>
         )}
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {results.map((dest) => (
             <article
               key={dest.id}
@@ -102,7 +102,7 @@ export default function Destinations() {
                 }
                 className="block"
               >
-              <div className="relative aspect-[4/5] w-full">
+              <div className="relative aspect-[3/4] w-full sm:aspect-[4/5]">
                 <Image
                   src={dest.image}
                   alt={dest.title}

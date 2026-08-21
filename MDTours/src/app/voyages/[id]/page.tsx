@@ -21,7 +21,7 @@ export default async function VoyagePage({
   return (
     <main className="min-h-screen bg-gray-50">
       <Header variant="solid" />
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 sm:gap-10 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
         <article>
           <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-navy">
             {destination.video ? (
@@ -57,7 +57,7 @@ export default async function VoyagePage({
           <p className="mt-6 text-xs font-bold uppercase tracking-[0.2em] text-gold">
             {destination.country}
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-navy sm:text-4xl">
+          <h1 className="mt-2 text-2xl font-bold text-navy sm:text-4xl">
             {destination.title}
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">

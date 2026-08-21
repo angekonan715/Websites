@@ -41,7 +41,7 @@ export default async function HistoriquePage() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
           Voyages réalisés
         </p>
-        <h2 className="mt-2 text-3xl font-bold text-navy">Photos et vidéos</h2>
+          <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">Photos et vidéos</h2>
         {trips.length === 0 ? (
           <p className="mt-6 text-sm text-gray-500">
             Les souvenirs de voyage seront bientôt publiés ici.
@@ -106,7 +106,7 @@ export default async function HistoriquePage() {
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
             Témoignages
           </p>
-          <h2 className="mt-2 text-3xl font-bold text-navy">
+          <h2 className="mt-2 text-2xl font-bold text-navy sm:text-3xl">
             Ils ont voyagé avec MD Tours
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-gray-500">
@@ -119,7 +119,7 @@ export default async function HistoriquePage() {
               Les premiers témoignages seront publiés ici.
             </p>
           ) : (
-            <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {testimonials.map((item) => (
                 <article
                   key={item.id}

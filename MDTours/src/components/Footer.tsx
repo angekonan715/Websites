@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-navy text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:grid-cols-2 sm:px-6 sm:py-12 lg:grid-cols-4 lg:px-8">
         <div>
           <p className="text-lg font-extrabold">MD TOURS</p>
           <p className="mt-2 text-sm text-white/70">Voyagez autrement.</p>
@@ -44,7 +44,7 @@ export default function Footer() {
           </a>
         </div>
       </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-white/50">
+      <div className="border-t border-white/10 py-4 text-center text-xs text-white/50 [padding-bottom:max(1rem,env(safe-area-inset-bottom))]">
         © {new Date().getFullYear()} MD Tours. Tous droits réservés.
       </div>
     </footer>

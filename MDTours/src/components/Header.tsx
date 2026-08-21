@@ -38,10 +38,10 @@ export default function Header({ variant = "overlay" }: HeaderProps) {
       }
     >
       <AdminViewSwitcher />
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:pb-5 sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-8">
         <Logo />
 
-        <nav className="hidden items-center gap-4 xl:gap-6 2xl:gap-7 lg:flex">
+        <nav className="hidden items-center gap-4 xl:flex xl:gap-6 2xl:gap-7">
           {navLinks.map((link) =>
             link.children ? (
               <div key={link.label} className="group relative">
@@ -93,26 +93,26 @@ export default function Header({ variant = "overlay" }: HeaderProps) {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <AuthMenu />
           <a
             href={`https://wa.me/${agencyContact.whatsapp}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/80 text-white transition-colors hover:border-gold hover:text-gold"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 text-white transition-colors hover:border-gold hover:text-gold sm:h-10 sm:w-10"
             aria-label="WhatsApp"
           >
             <MessageCircle className="h-5 w-5" />
           </a>
           <a
             href="/voyages"
-            className="btn-gold hidden px-5 py-2.5 text-xs sm:inline-flex"
+            className="btn-gold hidden px-5 py-2.5 text-xs md:inline-flex"
           >
             Réserver maintenant
           </a>
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white/80 text-white lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/80 text-white sm:h-10 sm:w-10 xl:hidden"
             onClick={() => setOpen((value) => !value)}
             aria-label="Menu"
           >
@@ -122,7 +122,7 @@ export default function Header({ variant = "overlay" }: HeaderProps) {
       </div>
 
       {open && (
-        <div className="border-t border-white/10 bg-navy px-6 py-4 lg:hidden">
+        <div className="max-h-[min(80vh,32rem)] overflow-y-auto border-t border-white/10 bg-navy px-4 py-4 sm:px-6 xl:hidden">
           {navLinks.map((link) =>
             link.children ? (
               <div key={link.label} className="py-1">
@@ -132,7 +132,7 @@ export default function Header({ variant = "overlay" }: HeaderProps) {
                     key={child.href}
                     href={child.href}
                     onClick={() => setOpen(false)}
-                    className="block py-2 pl-3 text-sm text-white/80 hover:text-gold"
+                    className="block py-2.5 pl-3 text-sm text-white/80 hover:text-gold"
                   >
                     {child.label}
                   </a>
@@ -143,12 +143,19 @@ export default function Header({ variant = "overlay" }: HeaderProps) {
                 key={link.label}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="block py-2 text-sm font-medium text-white hover:text-gold"
+                className="block py-2.5 text-sm font-medium text-white hover:text-gold"
               >
                 {link.label}
               </a>
             )
           )}
+          <a
+            href="/voyages"
+            onClick={() => setOpen(false)}
+            className="btn-gold mt-4 w-full md:hidden"
+          >
+            Réserver maintenant
+          </a>
         </div>
       )}
     </header>

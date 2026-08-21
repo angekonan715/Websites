@@ -61,7 +61,7 @@ export default function ContactPage() {
             Message envoyé. MD Tours vous recontactera bientôt.
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-gray-50 p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-gray-50 p-4 sm:p-6">
             <label className="block text-sm font-medium text-navy">
               Nom
               <input

@@ -14,7 +14,7 @@ export default function AuthMenu({ light = false }: AuthMenuProps) {
 
   if (loading) {
     return (
-      <div className="h-10 w-24 animate-pulse rounded-lg bg-white/20" />
+      <div className="h-10 w-10 animate-pulse rounded-lg bg-white/20 sm:w-24" />
     );
   }
 
@@ -24,8 +24,8 @@ export default function AuthMenu({ light = false }: AuthMenuProps) {
         href="/connexion"
         className={
           light
-            ? "rounded-lg border border-navy/20 px-4 py-2 text-xs font-semibold text-navy hover:border-gold hover:text-gold"
-            : "rounded-lg border-2 border-white/80 px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-gold hover:text-gold"
+            ? "rounded-lg border border-navy/20 px-2.5 py-2 text-xs font-semibold text-navy hover:border-gold hover:text-gold sm:px-4"
+            : "rounded-lg border-2 border-white/80 px-2.5 py-2 text-xs font-semibold text-white transition-colors hover:border-gold hover:text-gold sm:px-4"
         }
       >
         Connexion
@@ -40,12 +40,14 @@ export default function AuthMenu({ light = false }: AuthMenuProps) {
         onClick={() => setOpen((value) => !value)}
         className={
           light
-            ? "flex items-center gap-2 rounded-lg border border-navy/20 px-3 py-2 text-xs font-semibold text-navy"
-            : "flex items-center gap-2 rounded-lg border-2 border-white/80 px-3 py-2 text-xs font-semibold text-white"
+            ? "flex items-center gap-2 rounded-lg border border-navy/20 px-2 py-2 text-xs font-semibold text-navy sm:px-3"
+            : "flex items-center gap-2 rounded-lg border-2 border-white/80 px-2 py-2 text-xs font-semibold text-white sm:px-3"
         }
       >
         <UserRound className="h-4 w-4" />
-        {user.name.split(" ")[0]}
+        <span className="hidden max-w-[7rem] truncate sm:inline">
+          {user.name.split(" ")[0]}
+        </span>
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-48 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-search">

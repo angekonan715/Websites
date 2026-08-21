@@ -48,7 +48,7 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-search">
+    <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-search sm:p-8">
       <div className="mb-6 grid grid-cols-2 rounded-xl bg-gray-100 p-1">
         <button
           type="button"

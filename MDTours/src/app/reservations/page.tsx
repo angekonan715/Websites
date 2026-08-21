@@ -24,7 +24,7 @@ export default function ReservationsPage() {
     <main className="min-h-screen bg-gray-50">
       <Header variant="solid" />
       <div className="mx-auto max-w-4xl px-4 py-12">
-        <h1 className="text-3xl font-bold text-navy">Mes réservations</h1>
+        <h1 className="text-2xl font-bold text-navy sm:text-3xl">Mes réservations</h1>
         {!loading && !user && (
           <p className="mt-4 text-sm text-gray-600">
             <a href="/connexion?next=/reservations" className="font-semibold text-gold">

@@ -42,7 +42,7 @@ export default function CustomTripDetailPage() {
         {error && <p className="text-sm text-red-700">{error}</p>}
         {item && (
           <div className="space-y-6">
-            <div className="rounded-2xl bg-white p-6 shadow-search">
+            <div className="rounded-2xl bg-white p-4 shadow-search sm:p-6">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
                 {item.reference}
               </p>
@@ -122,7 +122,7 @@ export default function CustomTripDetailPage() {
             )}
 
             {item.proposalDetails && (
-              <div className="rounded-2xl bg-white p-6 shadow-search">
+              <div className="rounded-2xl bg-white p-4 shadow-search sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
                   Message MD Tours
                 </p>

@@ -188,7 +188,7 @@ export default function AdminTrips() {
 
       <form
         onSubmit={handleSubmit}
-        className="mt-6 grid gap-6 rounded-2xl bg-white p-6 shadow-search lg:grid-cols-2"
+        className="mt-6 grid gap-6 rounded-2xl bg-white p-4 shadow-search sm:p-6 lg:grid-cols-2"
       >
         <label className="text-sm font-medium text-navy">
           Titre
