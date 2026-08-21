@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+*.md
+.env
+.env.*
+MDTours/node_modules
+MDTours/.next
+MDTours/.env
+MDTours/.env.*
