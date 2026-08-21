@@ -16,8 +16,9 @@
     "unitPrice": 299000,
     "totalPrice": 2093000,
     "notes": "Nous voulons un voyage specailise",
-    "status": "awaiting_contact",
+    "status": "payment_received",
     "createdAt": "2026-08-19T18:18:14.977Z",
-    "updatedAt": "2026-08-19T18:18:14.977Z"
+    "updatedAt": "2026-08-20T16:01:33.934Z",
+    "paymentConfirmedAt": "2026-08-20T16:01:33.934Z"
   }
 ]

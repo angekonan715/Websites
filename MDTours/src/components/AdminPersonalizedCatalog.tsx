@@ -1,8 +1,82 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { formatPrice } from "@/data/home";
-import type { PersonalizedCatalog } from "@/lib/types";
+import type { PersonalizedActivity, PersonalizedCatalog } from "@/lib/types";
+
+type ActivityForm = {
+  name: string;
+  description: string;
+  adult: string;
+  childUnder12: string;
+  childUnder16: string;
+};
+
+function ActivityEditForm({
+  form,
+  setForm,
+  onCancel,
+  onSave,
+}: {
+  form: ActivityForm;
+  setForm: (value: ActivityForm) => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <div className="grid gap-2 rounded-xl bg-gray-50 p-3 sm:grid-cols-2">
+      <input
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        placeholder="Nom de l’activité"
+        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gold sm:col-span-2"
+      />
+      <input
+        value={form.description}
+        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        placeholder="Description"
+        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gold sm:col-span-2"
+      />
+      <input
+        type="number"
+        min={0}
+        value={form.adult}
+        onChange={(e) => setForm({ ...form, adult: e.target.value })}
+        placeholder="Prix adulte"
+        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gold"
+      />
+      <input
+        type="number"
+        min={0}
+        value={form.childUnder12}
+        onChange={(e) => setForm({ ...form, childUnder12: e.target.value })}
+        placeholder="Prix -12 ans"
+        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gold"
+      />
+      <input
+        type="number"
+        min={0}
+        value={form.childUnder16}
+        onChange={(e) => setForm({ ...form, childUnder16: e.target.value })}
+        placeholder="Prix -16 ans"
+        className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gold"
+      />
+      <div className="flex gap-2 sm:col-span-2">
+        <button type="button" onClick={onSave} className="btn-gold px-4 py-2 text-xs">
+          Enregistrer
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminPersonalizedCatalog() {
   const [catalog, setCatalog] = useState<PersonalizedCatalog | null>(null);
@@ -15,6 +89,16 @@ export default function AdminPersonalizedCatalog() {
   const [childUnder16, setChildUnder16] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [editingCityId, setEditingCityId] = useState("");
+  const [editingCityName, setEditingCityName] = useState("");
+  const [editingActivityId, setEditingActivityId] = useState("");
+  const [editForm, setEditForm] = useState<ActivityForm>({
+    name: "",
+    description: "",
+    adult: "",
+    childUnder12: "",
+    childUnder16: "",
+  });
 
   async function load() {
     const response = await fetch("/api/personalized-catalog");
@@ -45,6 +129,20 @@ export default function AdminPersonalizedCatalog() {
     }
     setCatalog(data.catalog ?? null);
     setMessage("Catalogue mis à jour.");
+    setEditingActivityId("");
+    setEditingCityId("");
+  }
+
+  function startEditActivity(activity: PersonalizedActivity) {
+    setEditingActivityId(activity.id);
+    setEditingCityId("");
+    setEditForm({
+      name: activity.name,
+      description: activity.description,
+      adult: String(activity.adult),
+      childUnder12: String(activity.childUnder12),
+      childUnder16: String(activity.childUnder16),
+    });
   }
 
   async function addCity(event: FormEvent) {
@@ -116,8 +214,8 @@ export default function AdminPersonalizedCatalog() {
     <section className="mb-12">
       <h2 className="text-xl font-bold text-navy">Tarifs du voyage personnalisé</h2>
       <p className="mt-1 text-sm text-gray-500">
-        Modifiez les prix simulés, ajoutez des villes et des activités. Ils
-        apparaissent immédiatement dans le constructeur client.
+        Modifiez les villes, les activités et les tarifs. Les changements
+        apparaissent tout de suite sur le voyage personnalisé.
       </p>
 
       <form
@@ -303,25 +401,119 @@ export default function AdminPersonalizedCatalog() {
       <div className="mt-6 space-y-4">
         {catalog.cities.map((city) => (
           <article key={city.id} className="rounded-2xl bg-white p-5 shadow-card">
-            <h3 className="font-semibold text-navy">{city.name}</h3>
-            <ul className="mt-3 space-y-2">
-              {city.activities.map((activity) => (
-                <li
-                  key={activity.id}
-                  className="flex flex-wrap items-center justify-between gap-2 text-sm"
+            {editingCityId === city.id ? (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={editingCityName}
+                  onChange={(e) => setEditingCityName(e.target.value)}
+                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-gold"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    void save({
+                      updateCity: { id: city.id, name: editingCityName },
+                    })
+                  }
+                  className="btn-gold px-4 py-2 text-xs"
                 >
-                  <span>
-                    {activity.name} · adulte {formatPrice(activity.adult)} · -12{" "}
-                    {formatPrice(activity.childUnder12)} · -16{" "}
-                    {formatPrice(activity.childUnder16)}
-                  </span>
+                  Enregistrer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingCityId("")}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold"
+                >
+                  Annuler
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-semibold text-navy">{city.name}</h3>
+                <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => void save({ deleteActivityId: activity.id })}
-                    className="text-xs font-semibold text-red-600"
+                    onClick={() => {
+                      setEditingCityId(city.id);
+                      setEditingCityName(city.name);
+                      setEditingActivityId("");
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-gold"
                   >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Modifier la ville
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`Supprimer ${city.name} et toutes ses activités ?`)) {
+                        void save({ deleteCityId: city.id });
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                     Supprimer
                   </button>
+                </div>
+              </div>
+            )}
+            <ul className="mt-3 space-y-3">
+              {city.activities.map((activity) => (
+                <li key={activity.id} className="text-sm">
+                  {editingActivityId === activity.id ? (
+                    <ActivityEditForm
+                      form={editForm}
+                      setForm={setEditForm}
+                      onCancel={() => setEditingActivityId("")}
+                      onSave={() =>
+                        void save({
+                          activity: {
+                            id: activity.id,
+                            name: editForm.name,
+                            description: editForm.description,
+                            adult: Number(editForm.adult || 0),
+                            childUnder12: Number(editForm.childUnder12 || 0),
+                            childUnder16: Number(editForm.childUnder16 || 0),
+                          },
+                        })
+                      }
+                    />
+                  ) : (
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-navy">{activity.name}</p>
+                        {activity.description ? (
+                          <p className="mt-0.5 text-xs text-gray-500">
+                            {activity.description}
+                          </p>
+                        ) : null}
+                        <p className="mt-1 text-xs text-gray-500">
+                          Adulte {formatPrice(activity.adult)} · -12 ans{" "}
+                          {formatPrice(activity.childUnder12)} · -16 ans{" "}
+                          {formatPrice(activity.childUnder16)}
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => startEditActivity(activity)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-gold"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Modifier
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void save({ deleteActivityId: activity.id })}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-red-600"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

@@ -18,6 +18,7 @@ export async function PUT(request: Request) {
     const body = (await request.json()) as Partial<PersonalizedCatalog> & {
       cityName?: string;
       activity?: {
+        id?: string;
         cityId?: string;
         name?: string;
         description?: string;
@@ -25,7 +26,9 @@ export async function PUT(request: Request) {
         childUnder12?: number;
         childUnder16?: number;
       };
+      updateCity?: { id?: string; name?: string };
       deleteActivityId?: string;
+      deleteCityId?: string;
     };
 
     const catalog = await getPersonalizedCatalog();
@@ -50,8 +53,33 @@ export async function PUT(request: Request) {
       }
     }
 
+    if (body.deleteCityId) {
+      catalog.cities = catalog.cities.filter((city) => city.id !== body.deleteCityId);
+    }
+
+    if (body.updateCity?.id && body.updateCity.name?.trim()) {
+      const city = catalog.cities.find((item) => item.id === body.updateCity?.id);
+      if (city) city.name = body.updateCity.name.trim();
+    }
+
     const activity = body.activity;
-    if (activity?.name?.trim() && activity.cityId) {
+    if (activity?.id && activity.name?.trim()) {
+      let found = false;
+      for (const city of catalog.cities) {
+        const current = city.activities.find((item) => item.id === activity.id);
+        if (!current) continue;
+        current.name = activity.name.trim();
+        current.description = activity.description?.trim() ?? current.description;
+        current.adult = Number(activity.adult ?? current.adult);
+        current.childUnder12 = Number(activity.childUnder12 ?? current.childUnder12);
+        current.childUnder16 = Number(activity.childUnder16 ?? current.childUnder16);
+        found = true;
+        break;
+      }
+      if (!found) {
+        return NextResponse.json({ error: "Activité introuvable." }, { status: 404 });
+      }
+    } else if (activity?.name?.trim() && activity.cityId) {
       let city: PersonalizedCity | undefined = catalog.cities.find(
         (item) => item.id === activity.cityId
       );
