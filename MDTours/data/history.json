@@ -1,5 +1,13 @@
 [
   {
+    "id": "bateau-2026-08-22",
+    "title": "Excursion en bateau",
+    "location": "Ghana",
+    "date": "2026-08-22",
+    "description": "Sortie du jour : le groupe MD Tours à bord, gilets de sauvetage et bonne humeur sous le soleil.",
+    "images": ["/images/excursion-bateau-2026-08-22.png"]
+  },
+  {
     "id": "accra-2025",
     "title": "Week-end à Accra",
     "location": "Accra, Ghana",
