@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Clock, Star } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import PlacesBadge from "@/components/PlacesBadge";
 import { formatPrice } from "@/data/home";
 import type { Destination } from "@/lib/types";
 
@@ -115,6 +116,7 @@ export default function Destinations() {
                 <span className="absolute left-2.5 top-2.5 rounded-md bg-gold px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white sm:left-4 sm:top-4 sm:px-2.5 sm:py-1 sm:text-[10px]">
                   {dest.country}
                 </span>
+                <PlacesBadge dest={dest} />
 
                 <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-4">
                   <h3 className="text-sm font-bold leading-snug text-white sm:text-lg">{dest.title}</h3>

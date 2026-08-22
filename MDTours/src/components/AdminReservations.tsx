@@ -54,7 +54,7 @@ export default function AdminReservations() {
       <h2 className="text-xl font-bold text-navy">Réservations et paiements</h2>
       <p className="mt-1 text-sm text-gray-500">
         Contactez le client avec sa référence, confirmez le paiement, puis le
-        rendez-vous.
+        rendez-vous. Confirmer le paiement retire les places du voyage.
       </p>
       {notice && (
         <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">

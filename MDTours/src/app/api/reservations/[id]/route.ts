@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { sendTripConfirmationEmail } from "@/lib/email";
-import { getReservations, saveReservations } from "@/lib/store";
+import { getDestinations, getReservations, saveReservations } from "@/lib/store";
 import type { ReservationStatus } from "@/lib/types";
 
 const allowedStatuses: ReservationStatus[] = [
@@ -60,6 +60,30 @@ export async function PATCH(
       { error: "Confirmez d'abord le paiement avant le rendez-vous." },
       { status: 400 }
     );
+  }
+
+  const occupying =
+    body.status === "payment_received" || body.status === "confirmed";
+  const alreadyOccupying =
+    reservation.status === "payment_received" ||
+    reservation.status === "confirmed";
+  if (occupying && !alreadyOccupying) {
+    const destinations = await getDestinations();
+    const destination = destinations.find(
+      (item) => item.id === reservation.destinationId
+    );
+    const remaining = destination?.availablePlaces ?? 0;
+    if (reservation.travelers > remaining) {
+      return NextResponse.json(
+        {
+          error:
+            remaining <= 0
+              ? "Plus aucune place disponible. Augmentez la capacité de ce voyage, ou annulez une autre réservation confirmée."
+              : `Il ne reste que ${remaining} place${remaining > 1 ? "s" : ""} : cette réservation en demande ${reservation.travelers}. Augmentez la capacité avant de confirmer.`,
+        },
+        { status: 400 }
+      );
+    }
   }
 
   const now = new Date().toISOString();

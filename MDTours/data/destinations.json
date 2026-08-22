@@ -7,7 +7,8 @@
     "price": 299000,
     "rating": 4.8,
     "reviews": 125,
-    "image": "/images/accra.png"
+    "image": "/images/accra.png",
+    "capacity": 20
   },
   {
     "id": "cape-coast",
@@ -17,7 +18,8 @@
     "price": 259000,
     "rating": 4.7,
     "reviews": 98,
-    "image": "/images/cape-coast.png"
+    "image": "/images/cape-coast.png",
+    "capacity": 20
   },
   {
     "id": "kwame-nkrumah",
@@ -27,7 +29,8 @@
     "price": 279000,
     "rating": 4.9,
     "reviews": 112,
-    "image": "/images/kwame-nkrumah.png"
+    "image": "/images/kwame-nkrumah.png",
+    "capacity": 20
   },
   {
     "id": "akwaba",
@@ -37,7 +40,8 @@
     "price": 349000,
     "rating": 4.9,
     "reviews": 145,
-    "image": "/images/waterfall.png"
+    "image": "/images/waterfall.png",
+    "capacity": 20
   },
   {
     "id": "boti-falls",
@@ -47,7 +51,8 @@
     "price": 189000,
     "rating": 4.8,
     "reviews": 86,
-    "image": "/images/boti-waterfall.png"
+    "image": "/images/boti-waterfall.png",
+    "capacity": 20
   },
   {
     "id": "mole",
@@ -57,7 +62,8 @@
     "price": 429000,
     "rating": 4.9,
     "reviews": 74,
-    "image": "/images/mole-national-park.png"
+    "image": "/images/mole-national-park.png",
+    "capacity": 20
   },
   {
     "id": "beach-resort",
@@ -67,7 +73,8 @@
     "price": 319000,
     "rating": 4.7,
     "reviews": 103,
-    "image": "/images/beach.png"
+    "image": "/images/beach.png",
+    "capacity": 20
   },
   {
     "id": "senegal",
@@ -77,6 +84,7 @@
     "price": 350002,
     "rating": 5,
     "reviews": 0,
-    "image": "/images/senegal.webp"
+    "image": "/images/senegal.webp",
+    "capacity": 20
   }
 ]

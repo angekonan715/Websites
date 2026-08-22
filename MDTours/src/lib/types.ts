@@ -10,6 +10,9 @@ export interface Destination {
   video?: string;
   gallery?: string[];
   description?: string;
+  capacity: number;
+  bookedPlaces?: number;
+  availablePlaces?: number;
 }
 
 export type UserRole = "user" | "admin";

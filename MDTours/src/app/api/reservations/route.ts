@@ -67,6 +67,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Voyage introuvable." }, { status: 404 });
     }
 
+    const remaining = destination.availablePlaces ?? 0;
+    if (remaining <= 0) {
+      return NextResponse.json(
+        { error: "Ce voyage est complet. Plus aucune place n’est disponible." },
+        { status: 400 }
+      );
+    }
+    if (travelers > remaining) {
+      return NextResponse.json(
+        {
+          error:
+            remaining === 1
+              ? "Il ne reste qu’1 place disponible pour ce voyage."
+              : `Il ne reste que ${remaining} places disponibles pour ce voyage.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const now = new Date().toISOString();
     const reservation: Reservation = {
       id: crypto.randomUUID(),

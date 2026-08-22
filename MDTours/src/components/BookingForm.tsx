@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { placesLabel } from "@/lib/availability";
 import { formatPrice } from "@/data/home";
 import type { Destination } from "@/lib/types";
 
@@ -13,12 +14,17 @@ export default function BookingForm({ destination }: { destination: Destination 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [departureDate, setDepartureDate] = useState(searchParams.get("date") ?? "");
-  const [travelers, setTravelers] = useState(Number(searchParams.get("voyageurs")) || 1);
+  const remaining = destination.availablePlaces ?? destination.capacity;
+  const requested = Number(searchParams.get("voyageurs")) || 1;
+  const [travelers, setTravelers] = useState(
+    remaining > 0 ? Math.min(requested, remaining) : 1
+  );
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const total = destination.price * travelers;
+  const soldOut = remaining <= 0;
 
   useEffect(() => {
     if (user?.name) setName(user.name);
@@ -69,12 +75,17 @@ export default function BookingForm({ destination }: { destination: Destination 
       className="rounded-2xl bg-white p-4 shadow-search sm:p-6"
     >
       <h2 className="text-xl font-bold text-navy">Réserver ce voyage</h2>
-      <p className="mt-1 text-sm text-gray-500">
-        Total estimé : {formatPrice(total)} FCFA pour {travelers}{" "}
-        {travelers > 1 ? "voyageurs" : "voyageur"}
+      <p className={`mt-1 text-sm font-semibold ${soldOut ? "text-red-700" : "text-navy"}`}>
+        {placesLabel(remaining)}
       </p>
+      {!soldOut && (
+        <p className="mt-1 text-sm text-gray-500">
+          Total estimé : {formatPrice(total)} FCFA pour {travelers}{" "}
+          {travelers > 1 ? "voyageurs" : "voyageur"}
+        </p>
+      )}
 
-      {!loading && !user && (
+      {!soldOut && !loading && !user && (
         <p className="mt-4 rounded-xl bg-gold/10 px-4 py-3 text-sm text-navy">
           <a
             href={`/connexion?next=/voyages/${destination.id}`}
@@ -86,6 +97,12 @@ export default function BookingForm({ destination }: { destination: Destination 
         </p>
       )}
 
+      {soldOut ? (
+        <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          Ce voyage n’a plus de places. L’agence peut en ajouter : les places
+          réapparaîtront ici.
+        </p>
+      ) : (
       <div className="mt-5 space-y-4">
         <label className="block text-sm font-medium text-navy">
           Nom complet
@@ -124,11 +141,17 @@ export default function BookingForm({ destination }: { destination: Destination 
             required
             type="number"
             min={1}
-            max={20}
+            max={Math.min(20, remaining)}
             value={travelers}
-            onChange={(e) => setTravelers(Number(e.target.value) || 1)}
+            onChange={(e) => {
+              const value = Number(e.target.value) || 1;
+              setTravelers(Math.min(remaining, Math.max(1, value)));
+            }}
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
+          <span className="mt-1 block text-xs text-gray-500">
+            Maximum {Math.min(20, remaining)} place{Math.min(20, remaining) > 1 ? "s" : ""}
+          </span>
         </label>
         <label className="block text-sm font-medium text-navy">
           Message (optionnel)
@@ -140,6 +163,7 @@ export default function BookingForm({ destination }: { destination: Destination 
           />
         </label>
       </div>
+      )}
 
       {error && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -147,9 +171,11 @@ export default function BookingForm({ destination }: { destination: Destination 
         </p>
       )}
 
-      <button type="submit" disabled={saving || loading} className="btn-gold mt-5 w-full">
-        {saving ? "Enregistrement..." : "Confirmer ma réservation"}
-      </button>
+      {!soldOut && (
+        <button type="submit" disabled={saving || loading} className="btn-gold mt-5 w-full">
+          {saving ? "Enregistrement..." : "Confirmer ma réservation"}
+        </button>
+      )}
     </form>
   );
 }

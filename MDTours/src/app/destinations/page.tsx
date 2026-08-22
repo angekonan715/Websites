@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Header from "@/components/Header";
 import PageHero from "@/components/PageHero";
+import PlacesBadge from "@/components/PlacesBadge";
 import { getDestinations } from "@/lib/store";
 
 export default async function DestinationsPage() {
@@ -39,6 +40,9 @@ export default async function DestinationsPage() {
                     <div className="p-3 sm:p-4">
                       <h3 className="text-sm font-semibold text-navy sm:text-base">{dest.title}</h3>
                       <p className="mt-1 text-xs text-gray-500 sm:text-sm">{dest.duration}</p>
+                      <div className="mt-2">
+                        <PlacesBadge dest={dest} variant="light" />
+                      </div>
                     </div>
                   </a>
                 ))}

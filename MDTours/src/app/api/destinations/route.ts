@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { DEFAULT_CAPACITY } from "@/lib/availability";
 import { getCurrentUser } from "@/lib/auth";
 import {
   getDestinations,
@@ -20,6 +21,7 @@ function readTripFields(formData: FormData) {
     rating: Number(formData.get("rating") || 4.8),
     reviews: Number(formData.get("reviews") || 0),
     description: String(formData.get("description") ?? "").trim(),
+    capacity: Number(formData.get("capacity") || DEFAULT_CAPACITY),
   };
 }
 
@@ -55,6 +57,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (!Number.isFinite(fields.capacity) || fields.capacity < 1 || fields.capacity > 500) {
+      return NextResponse.json(
+        { error: "Le nombre de places doit être compris entre 1 et 500." },
+        { status: 400 }
+      );
+    }
     if (!isImageFile(imageFile)) {
       return NextResponse.json(
         { error: "Ajoutez une photo de couverture (JPG, PNG ou WEBP)." },
@@ -85,6 +93,7 @@ export async function POST(request: Request) {
       rating: Math.min(5, Math.max(0, fields.rating)),
       reviews: Math.max(0, fields.reviews),
       description: fields.description,
+      capacity: Math.floor(fields.capacity),
       image,
       gallery,
       video: isVideoFile(videoFile)
@@ -123,6 +132,20 @@ export async function PATCH(request: Request) {
         { status: 400 }
       );
     }
+    if (!Number.isFinite(fields.capacity) || fields.capacity < 1 || fields.capacity > 500) {
+      return NextResponse.json(
+        { error: "Le nombre de places doit être compris entre 1 et 500." },
+        { status: 400 }
+      );
+    }
+    if (fields.capacity < (destination.bookedPlaces ?? 0)) {
+      return NextResponse.json(
+        {
+          error: `Impossible de descendre sous ${destination.bookedPlaces} places : des réservations sont déjà confirmées. Annulez-en une, ou augmentez la capacité.`,
+        },
+        { status: 400 }
+      );
+    }
 
     destination.title = fields.title;
     destination.country = fields.country;
@@ -131,6 +154,7 @@ export async function PATCH(request: Request) {
     destination.rating = Math.min(5, Math.max(0, fields.rating));
     destination.reviews = Math.max(0, fields.reviews);
     destination.description = fields.description;
+    destination.capacity = Math.floor(fields.capacity);
 
     const imageFile = formData.get("image");
     if (isImageFile(imageFile)) {

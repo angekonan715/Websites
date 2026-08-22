@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { Clock, Star } from "lucide-react";
+import { Clock, Star, Users } from "lucide-react";
 import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
+import PlacesBadge from "@/components/PlacesBadge";
 import { formatPrice } from "@/data/home";
 import { getDestinations } from "@/lib/store";
 
@@ -71,6 +72,10 @@ export default async function VoyagePage({
                 minimumFractionDigits: 1,
               })}{" "}
               ({destination.reviews})
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="h-4 w-4 text-gold" />
+              <PlacesBadge dest={destination} variant="light" />
             </span>
           </div>
           <p className="mt-4 text-2xl font-bold text-navy">

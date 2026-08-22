@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
+import { persistDestination, withAvailability } from "./availability";
 import type {
   ContactMessage,
   CustomTripRequest,
@@ -30,14 +31,18 @@ async function ensureDataDir() {
 
 export async function getDestinations(): Promise<Destination[]> {
   const raw = await fs.readFile(destinationsPath, "utf8");
-  return JSON.parse(raw) as Destination[];
+  const destinations = JSON.parse(raw) as Destination[];
+  const reservations = await getReservations();
+  return destinations.map((destination) =>
+    withAvailability(destination, reservations)
+  );
 }
 
 export async function saveDestinations(destinations: Destination[]) {
   await ensureDataDir();
   await fs.writeFile(
     destinationsPath,
-    JSON.stringify(destinations, null, 2),
+    JSON.stringify(destinations.map(persistDestination), null, 2),
     "utf8"
   );
 }

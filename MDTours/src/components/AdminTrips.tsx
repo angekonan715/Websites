@@ -14,6 +14,7 @@ const emptyForm = {
   rating: "4.8",
   reviews: "0",
   description: "",
+  capacity: "20",
 };
 
 export default function AdminTrips() {
@@ -61,6 +62,7 @@ export default function AdminTrips() {
       rating: String(dest.rating),
       reviews: String(dest.reviews),
       description: dest.description ?? "",
+      capacity: String(dest.capacity ?? 20),
     });
     setImage(null);
     setVideo(null);
@@ -86,6 +88,7 @@ export default function AdminTrips() {
       formData.set("rating", form.rating);
       formData.set("reviews", form.reviews);
       formData.set("description", form.description);
+      formData.set("capacity", form.capacity);
       if (image) formData.set("image", image);
       if (video) formData.set("video", video);
       gallery.forEach((file) => formData.append("gallery", file));
@@ -251,6 +254,23 @@ export default function AdminTrips() {
           />
         </label>
         <label className="text-sm font-medium text-navy lg:col-span-2">
+          Places disponibles (total)
+          <input
+            required
+            type="number"
+            min={1}
+            max={500}
+            value={form.capacity}
+            onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+          />
+          <span className="mt-1 block text-xs text-gray-500">
+            {editing
+              ? `${editing.bookedPlaces ?? 0} place${(editing.bookedPlaces ?? 0) > 1 ? "s" : ""} déjà confirmée${(editing.bookedPlaces ?? 0) > 1 ? "s" : ""} — vous pouvez augmenter le total à tout moment.`
+              : "Ce total diminue automatiquement quand une réservation est confirmée."}
+          </span>
+        </label>
+        <label className="text-sm font-medium text-navy lg:col-span-2">
           Description
           <textarea
             rows={3}
@@ -357,6 +377,10 @@ export default function AdminTrips() {
               </p>
               <h3 className="font-semibold text-navy">{dest.title}</h3>
               <p className="text-sm text-gray-500">{formatPrice(dest.price)} FCFA</p>
+              <p className="mt-1 text-sm font-semibold text-navy">
+                {dest.availablePlaces ?? dest.capacity} / {dest.capacity} places
+                {(dest.availablePlaces ?? dest.capacity) <= 0 ? " · Complet" : ""}
+              </p>
               {dest.gallery && dest.gallery.length > 0 && (
                 <p className="mt-1 text-xs text-gray-400">
                   {dest.gallery.length} photo(s) extra
