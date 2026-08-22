@@ -113,8 +113,12 @@ export default function AdminTestimonials() {
       <h2 className="text-xl font-bold text-navy">Témoignages clients</h2>
       <p className="mt-1 text-sm text-gray-500">
         Le texte d’un avis n’est pas modifiable. Les clients publient
-        directement sur l’historique. Vous pouvez joindre des photos ou retirer
-        un avis.
+        directement sur l’historique. N’ajoutez une photo que si le client (et
+        les personnes visibles) ont accepté.{" "}
+        <a href="/droits-images" className="font-semibold text-gold">
+          Droits à l’image
+        </a>
+        .
       </p>
 
       <div className="mt-4 flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-card sm:flex-row">

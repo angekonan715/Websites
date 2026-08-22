@@ -36,6 +36,15 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (String(formData.get("imageRights") ?? "") !== "1") {
+      return NextResponse.json(
+        {
+          error:
+            "Confirmez que MD Tours a le droit de publier ces photos (accord des personnes visibles).",
+        },
+        { status: 400 }
+      );
+    }
 
     const id = `${slugify(title) || "souvenir"}-${Date.now()}`;
     const images: string[] = [];
@@ -58,6 +67,8 @@ export async function POST(request: Request) {
       description,
       images,
       video,
+      imageRightsConfirmed: true,
+      imageRightsConfirmedAt: new Date().toISOString(),
     };
     const trips = await getHistoryTrips();
     trips.push(trip);

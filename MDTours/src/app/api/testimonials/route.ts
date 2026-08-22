@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     let tripTitle = "";
     let message = "";
     let rating = 0;
+    let imageRightsAccepted = false;
     const files: File[] = [];
 
     if (contentType.includes("multipart/form-data")) {
@@ -55,6 +56,8 @@ export async function POST(request: Request) {
       tripTitle = String(formData.get("tripTitle") ?? "").trim();
       message = String(formData.get("message") ?? "").trim();
       rating = Number(formData.get("rating") ?? 0);
+      imageRightsAccepted =
+        String(formData.get("imageRights") ?? "") === "1";
       for (const entry of formData.getAll("images")) {
         if (entry instanceof File && entry.size > 0) files.push(entry);
       }
@@ -64,11 +67,14 @@ export async function POST(request: Request) {
         tripTitle?: string;
         rating?: number;
         message?: string;
+        imageRights?: boolean | string;
       };
       token = body.token?.trim() ?? "";
       tripTitle = body.tripTitle?.trim() ?? "";
       message = body.message?.trim() ?? "";
       rating = Number(body.rating ?? 0);
+      imageRightsAccepted =
+        body.imageRights === true || body.imageRights === "1";
     }
 
     if (!token || !tripTitle || message.length < 20 || rating < 1 || rating > 5) {
@@ -83,6 +89,15 @@ export async function POST(request: Request) {
     if (files.length > 8) {
       return NextResponse.json(
         { error: "Vous pouvez joindre jusqu’à 8 photos." },
+        { status: 400 }
+      );
+    }
+    if (!imageRightsAccepted) {
+      return NextResponse.json(
+        {
+          error:
+            "Cochez l’autorisation de publication pour envoyer votre témoignage et vos photos.",
+        },
         { status: 400 }
       );
     }
@@ -126,6 +141,8 @@ export async function POST(request: Request) {
       inviteToken: token,
       createdAt: now,
       images,
+      imageRightsAccepted: true,
+      imageRightsAcceptedAt: now,
     };
 
     invite.usedAt = now;

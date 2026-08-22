@@ -23,7 +23,7 @@ export default async function HistoriquePage() {
       <PageHero
         kicker="Historique"
         title="Souvenirs et témoignages"
-        subtitle="Les voyages déjà réalisés, et la parole des voyageurs — telle qu’ils l’ont écrite."
+        subtitle="Les voyages déjà réalisés, et la parole des voyageurs — telle qu’ils l’ont écrite. Photos publiées avec autorisation. Demande de retrait : page Droits à l’image."
       />
 
       <section className="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">

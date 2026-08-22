@@ -13,6 +13,7 @@ export default function AdminHistory() {
   const [description, setDescription] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [video, setVideo] = useState<File | null>(null);
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -40,6 +41,7 @@ export default function AdminHistory() {
       formData.set("description", description);
       images.forEach((file) => formData.append("images", file));
       if (video) formData.set("video", video);
+      formData.set("imageRights", rightsConfirmed ? "1" : "0");
 
       const response = await fetch("/api/history", {
         method: "POST",
@@ -56,6 +58,7 @@ export default function AdminHistory() {
       setDescription("");
       setImages([]);
       setVideo(null);
+      setRightsConfirmed(false);
       setMessage("Souvenir ajouté à l’historique.");
       await load();
     } catch {
@@ -75,8 +78,12 @@ export default function AdminHistory() {
     <section className="mb-12">
       <h2 className="text-xl font-bold text-navy">Historique des voyages</h2>
       <p className="mt-1 text-sm text-gray-500">
-        Ajoutez photos et vidéos des voyages déjà réalisés. Ils apparaissent sur
-        la page Historique.
+        Ajoutez photos et vidéos uniquement si les personnes visibles ont
+        accepté la publication. Voir{" "}
+        <a href="/droits-images" className="font-semibold text-gold">
+          droits à l’image
+        </a>
+        .
       </p>
 
       <form
@@ -139,13 +146,33 @@ export default function AdminHistory() {
             className="mt-1 w-full text-sm"
           />
         </label>
+        <label className="flex items-start gap-3 text-sm text-navy sm:col-span-2">
+          <input
+            required
+            type="checkbox"
+            checked={rightsConfirmed}
+            onChange={(e) => setRightsConfirmed(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[#D99B15]"
+          />
+          <span>
+            Je confirme que les personnes reconnaissables ont accepté la
+            publication de ces photos/vidéos sur le site MD Tours.{" "}
+            <a href="/droits-images" className="font-semibold text-gold">
+              Droits à l’image
+            </a>
+          </span>
+        </label>
         {error && (
           <p className="sm:col-span-2 text-sm text-red-700">{error}</p>
         )}
         {message && (
           <p className="sm:col-span-2 text-sm text-green-700">{message}</p>
         )}
-        <button type="submit" disabled={saving} className="btn-gold sm:col-span-2 w-fit">
+        <button
+          type="submit"
+          disabled={saving || !rightsConfirmed}
+          className="btn-gold sm:col-span-2 w-fit"
+        >
           {saving ? "Envoi..." : "Publier dans l’historique"}
         </button>
       </form>

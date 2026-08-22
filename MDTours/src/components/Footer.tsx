@@ -44,8 +44,11 @@ export default function Footer() {
           </a>
         </div>
       </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-white/50 [padding-bottom:max(1rem,env(safe-area-inset-bottom))]">
-        © {new Date().getFullYear()} MD Tours. Tous droits réservés.
+      <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-white/50 [padding-bottom:max(1rem,env(safe-area-inset-bottom))]">
+        © {new Date().getFullYear()} MD Tours. Tous droits réservés.{" "}
+        <a href="/droits-images" className="text-white/70 underline-offset-2 hover:text-gold hover:underline">
+          Droits à l’image
+        </a>
       </div>
     </footer>
   );

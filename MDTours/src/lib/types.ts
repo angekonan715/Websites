@@ -82,6 +82,8 @@ export interface Testimonial {
   inviteToken: string;
   createdAt: string;
   images?: string[];
+  imageRightsAccepted?: boolean;
+  imageRightsAcceptedAt?: string;
 }
 
 export interface TestimonyInvite {
@@ -102,6 +104,8 @@ export interface HistoryTrip {
   description: string;
   images: string[];
   video?: string;
+  imageRightsConfirmed?: boolean;
+  imageRightsConfirmedAt?: string;
 }
 
 export interface ContactMessage {

@@ -14,6 +14,7 @@ export default function AuthForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [acceptedRights, setAcceptedRights] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -113,13 +114,37 @@ export default function AuthForm() {
           />
         </label>
 
+        {mode === "signup" && (
+          <label className="flex items-start gap-3 text-sm text-navy">
+            <input
+              required
+              type="checkbox"
+              checked={acceptedRights}
+              onChange={(e) => setAcceptedRights(e.target.checked)}
+              className="mt-1 h-4 w-4 shrink-0 accent-[#D99B15]"
+            />
+            <span>
+              J’accepte que MD Tours utilise mon nom et, si j’en ajoute, mes
+              photos de voyage selon les{" "}
+              <a href="/droits-images" className="font-semibold text-gold">
+                droits à l’image
+              </a>
+              .
+            </span>
+          </label>
+        )}
+
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={loading} className="btn-gold w-full">
+        <button
+          type="submit"
+          disabled={loading || (mode === "signup" && !acceptedRights)}
+          className="btn-gold w-full"
+        >
           {loading
             ? "Veuillez patienter..."
             : mode === "signin"

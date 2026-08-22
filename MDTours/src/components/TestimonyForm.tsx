@@ -19,6 +19,7 @@ export default function NewTestimonialForm() {
   const [inviteError, setInviteError] = useState("");
   const [saving, setSaving] = useState(false);
   const [valid, setValid] = useState(false);
+  const [imageRights, setImageRights] = useState(false);
 
   const previews = useMemo(
     () => photos.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })),
@@ -61,6 +62,7 @@ export default function NewTestimonialForm() {
       formData.set("tripTitle", tripTitle);
       formData.set("rating", String(rating));
       formData.set("message", message);
+      formData.set("imageRights", imageRights ? "1" : "0");
       photos.forEach((file) => formData.append("images", file));
 
       const response = await fetch("/api/testimonials", {
@@ -87,7 +89,12 @@ export default function NewTestimonialForm() {
         <h1 className="text-2xl font-bold text-navy sm:text-3xl">Partager votre témoignage</h1>
         <p className="mt-2 text-sm text-gray-500">
           Racontez votre voyage et joignez des photos. Votre témoignage est
-          publié tout de suite sur l’historique.
+          publié tout de suite sur l’historique. En ajoutant des photos, vous
+          autorisez MD Tours à les afficher —{" "}
+          <a href="/droits-images" className="font-semibold text-gold">
+            voir les droits à l’image
+          </a>
+          .
         </p>
 
         {!loading && !user && (
@@ -148,7 +155,9 @@ export default function NewTestimonialForm() {
             <div>
               <p className="text-sm font-medium text-navy">Photos du voyage</p>
               <p className="mt-1 text-xs text-gray-500">
-                Jusqu’à 8 photos (JPG, PNG ou WEBP).
+                Jusqu’à 8 photos (JPG, PNG ou WEBP). N’ajoutez que des photos
+                dont vous avez le droit d’usage, y compris l’accord des
+                personnes reconnaissables.
               </p>
               <label className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 px-4 py-8 text-center hover:border-gold">
                 <ImagePlus className="h-6 w-6 text-gold" />
@@ -187,12 +196,34 @@ export default function NewTestimonialForm() {
                 </div>
               )}
             </div>
+            <label className="flex items-start gap-3 rounded-xl bg-gold/10 px-4 py-3 text-sm text-navy">
+              <input
+                required
+                type="checkbox"
+                checked={imageRights}
+                onChange={(e) => setImageRights(e.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 accent-[#D99B15]"
+              />
+              <span>
+                J’autorise MD Tours à publier ce témoignage et les photos
+                jointes sur le site. Je confirme avoir le droit de les partager
+                et l’accord des personnes visibles.{" "}
+                <a href="/droits-images" className="font-semibold text-gold">
+                  Lire les droits à l’image
+                </a>
+                .
+              </span>
+            </label>
             {error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}
               </p>
             )}
-            <button type="submit" disabled={saving} className="btn-gold w-full">
+            <button
+              type="submit"
+              disabled={saving || !imageRights}
+              className="btn-gold w-full"
+            >
               {saving ? "Envoi..." : "Envoyer mon témoignage"}
             </button>
           </form>

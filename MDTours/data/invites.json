@@ -7,5 +7,12 @@
     "expiresAt": "2026-09-19T16:10:05.536Z",
     "usedAt": "2026-08-20T16:12:10.031Z",
     "usedBy": "admin"
+  },
+  {
+    "id": "74c7be54-0c78-410f-9b04-0ca83ea952d0",
+    "token": "c5235ac9e6ad49028e66554d3de6171e",
+    "note": "Invitation témoignage",
+    "createdAt": "2026-08-22T07:02:46.331Z",
+    "expiresAt": "2026-09-21T07:02:46.331Z"
   }
 ]
