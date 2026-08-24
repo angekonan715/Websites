@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { placesLabel } from "@/lib/availability";
 import { formatPrice } from "@/data/home";
+import { tripUnitPrice } from "@/lib/pricing";
 import type { Destination } from "@/lib/types";
 
 export default function BookingForm({ destination }: { destination: Destination }) {
@@ -23,7 +24,7 @@ export default function BookingForm({ destination }: { destination: Destination 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
-  const total = destination.price * travelers;
+  const total = tripUnitPrice(destination) * travelers;
   const soldOut = remaining <= 0;
 
   useEffect(() => {

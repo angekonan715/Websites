@@ -1,10 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Copy, Pencil, Trash2, Upload, Video } from "lucide-react";
-import { formatPrice } from "@/data/home";
-import type { Destination } from "@/lib/types";
+import { Copy, Pencil, Trash2, Upload, Users, Video } from "lucide-react";
+import TripPrice from "@/components/TripPrice";
+import { formatPrice, reservationStatusLabel } from "@/data/home";
+import { formatAdminDate } from "@/lib/csv";
+import { clientKey } from "@/lib/records";
+import type { Destination, Reservation } from "@/lib/types";
 
 const emptyForm = {
   title: "",
@@ -15,6 +18,9 @@ const emptyForm = {
   reviews: "0",
   description: "",
   capacity: "20",
+  promotionEnabled: false,
+  promotionLabel: "",
+  promotionPrice: "",
 };
 
 export default function AdminTrips() {
@@ -30,6 +36,8 @@ export default function AdminTrips() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState("");
   const [copiedId, setCopiedId] = useState("");
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [rosterId, setRosterId] = useState("");
 
   async function loadDestinations() {
     const response = await fetch("/api/destinations");
@@ -37,9 +45,30 @@ export default function AdminTrips() {
     setDestinations(data.destinations ?? []);
   }
 
+  async function loadReservations() {
+    const response = await fetch("/api/reservations");
+    const data = (await response.json()) as { reservations?: Reservation[] };
+    setReservations(data.reservations ?? []);
+  }
+
   useEffect(() => {
     void loadDestinations();
+    void loadReservations();
   }, []);
+
+  const rosterByTrip = useMemo(() => {
+    const map = new Map<string, Reservation[]>();
+    for (const item of reservations) {
+      if (item.status === "cancelled") continue;
+      const list = map.get(item.destinationId) ?? [];
+      list.push(item);
+      map.set(item.destinationId, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.departureDate.localeCompare(b.departureDate));
+    }
+    return map;
+  }, [reservations]);
 
   function startCreate() {
     setEditingId(null);
@@ -63,6 +92,9 @@ export default function AdminTrips() {
       reviews: String(dest.reviews),
       description: dest.description ?? "",
       capacity: String(dest.capacity ?? 20),
+      promotionEnabled: Boolean(dest.promotionEnabled),
+      promotionLabel: dest.promotionLabel ?? "",
+      promotionPrice: dest.promotionPrice ? String(dest.promotionPrice) : "",
     });
     setImage(null);
     setVideo(null);
@@ -89,6 +121,9 @@ export default function AdminTrips() {
       formData.set("reviews", form.reviews);
       formData.set("description", form.description);
       formData.set("capacity", form.capacity);
+      formData.set("promotionEnabled", form.promotionEnabled ? "1" : "0");
+      formData.set("promotionLabel", form.promotionLabel);
+      formData.set("promotionPrice", form.promotionPrice);
       if (image) formData.set("image", image);
       if (video) formData.set("video", video);
       gallery.forEach((file) => formData.append("gallery", file));
@@ -170,9 +205,9 @@ export default function AdminTrips() {
     <section className="mt-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-navy">
+          <h3 className="text-lg font-bold text-navy">
             {editingId ? "Modifier le voyage" : "Ajouter un voyage"}
-          </h2>
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
             Photo de couverture, photos supplémentaires et vidéo pour le bloc
             voyage.
@@ -270,6 +305,44 @@ export default function AdminTrips() {
               : "Ce total diminue automatiquement quand une réservation est confirmée."}
           </span>
         </label>
+        <label className="flex items-center gap-3 text-sm font-medium text-navy lg:col-span-2">
+          <input
+            type="checkbox"
+            checked={form.promotionEnabled}
+            onChange={(e) =>
+              setForm({ ...form, promotionEnabled: e.target.checked })
+            }
+            className="h-4 w-4 accent-[#D99B15]"
+          />
+          Activer une promotion sur ce voyage
+        </label>
+        {form.promotionEnabled && (
+          <>
+            <label className="text-sm font-medium text-navy">
+              Libellé (ex. -15 %, Offre été)
+              <input
+                value={form.promotionLabel}
+                onChange={(e) =>
+                  setForm({ ...form, promotionLabel: e.target.value })
+                }
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+              />
+            </label>
+            <label className="text-sm font-medium text-navy">
+              Prix promotionnel (FCFA)
+              <input
+                required
+                type="number"
+                min={1}
+                value={form.promotionPrice}
+                onChange={(e) =>
+                  setForm({ ...form, promotionPrice: e.target.value })
+                }
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+              />
+            </label>
+          </>
+        )}
         <label className="text-sm font-medium text-navy lg:col-span-2">
           Description
           <textarea
@@ -376,10 +449,16 @@ export default function AdminTrips() {
                 {dest.country}
               </p>
               <h3 className="font-semibold text-navy">{dest.title}</h3>
-              <p className="text-sm text-gray-500">{formatPrice(dest.price)} FCFA</p>
+              <p className="text-sm text-gray-500">
+                <TripPrice dest={dest} prefix="" />
+              </p>
               <p className="mt-1 text-sm font-semibold text-navy">
                 {dest.availablePlaces ?? dest.capacity} / {dest.capacity} places
                 {(dest.availablePlaces ?? dest.capacity) <= 0 ? " · Complet" : ""}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                {rosterByTrip.get(dest.id)?.length ?? 0} dossier
+                {(rosterByTrip.get(dest.id)?.length ?? 0) > 1 ? "s" : ""} d’inscription
               </p>
               {dest.gallery && dest.gallery.length > 0 && (
                 <p className="mt-1 text-xs text-gray-400">
@@ -387,6 +466,14 @@ export default function AdminTrips() {
                 </p>
               )}
               <div className="mt-4 grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRosterId(rosterId === dest.id ? "" : dest.id)}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-navy hover:border-gold"
+                >
+                  <Users className="h-4 w-4 text-gold" />
+                  {rosterId === dest.id ? "Masquer les inscrits" : "Voir les inscrits"}
+                </button>
                 <button
                   type="button"
                   onClick={() => startEdit(dest)}
@@ -417,6 +504,93 @@ export default function AdminTrips() {
           </article>
         ))}
       </div>
+
+      {rosterId ? (
+        <TripRoster
+          title={destinations.find((item) => item.id === rosterId)?.title ?? "Voyage"}
+          bookings={rosterByTrip.get(rosterId) ?? []}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function TripRoster({
+  title,
+  bookings,
+}: {
+  title: string;
+  bookings: Reservation[];
+}) {
+  const byDate = new Map<string, Reservation[]>();
+  for (const item of bookings) {
+    const list = byDate.get(item.departureDate) ?? [];
+    list.push(item);
+    byDate.set(item.departureDate, list);
+  }
+  const dates = [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+  return (
+    <div className="mt-8 rounded-2xl bg-white p-5 shadow-card">
+      <h3 className="text-lg font-bold text-navy">Inscrits — {title}</h3>
+      <p className="mt-1 text-sm text-gray-500">
+        Clients qui ont réservé ce voyage, avec la date de départ.
+      </p>
+      {dates.length === 0 ? (
+        <p className="mt-4 text-sm text-gray-500">Aucune inscription active.</p>
+      ) : (
+        <div className="mt-4 space-y-6">
+          {dates.map(([date, items]) => {
+            const travelers = items.reduce((sum, item) => sum + item.travelers, 0);
+            return (
+              <div key={date}>
+                <p className="text-xs font-bold uppercase tracking-wider text-gold">
+                  Date du voyage : {formatAdminDate(date)} · {items.length} dossier
+                  {items.length > 1 ? "s" : ""} · {travelers} voyageur
+                  {travelers > 1 ? "s" : ""}
+                </p>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="min-w-[640px] w-full text-left text-sm">
+                    <thead className="text-[11px] uppercase tracking-wide text-gray-400">
+                      <tr>
+                        <th className="pb-2 font-semibold">Client</th>
+                        <th className="pb-2 font-semibold">Téléphone</th>
+                        <th className="pb-2 font-semibold">Places</th>
+                        <th className="pb-2 font-semibold">Montant</th>
+                        <th className="pb-2 font-semibold">Statut</th>
+                        <th className="pb-2 font-semibold" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr key={item.id} className="border-t border-gray-100">
+                          <td className="py-2.5 font-semibold text-navy">{item.name}</td>
+                          <td className="py-2.5 text-gray-600">{item.phone}</td>
+                          <td className="py-2.5 text-gray-600">{item.travelers}</td>
+                          <td className="py-2.5 font-semibold text-navy">
+                            {formatPrice(item.totalPrice)} FCFA
+                          </td>
+                          <td className="py-2.5 text-xs text-gray-600">
+                            {reservationStatusLabel[item.status]}
+                          </td>
+                          <td className="py-2.5 text-right">
+                            <a
+                              href={`/admin?c=clients&id=${encodeURIComponent(clientKey(item.email, item.phone))}`}
+                              className="text-xs font-semibold text-gold hover:underline"
+                            >
+                              Fiche client
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

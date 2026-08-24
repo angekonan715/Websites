@@ -75,9 +75,8 @@ export default function AdminHistory() {
   }
 
   return (
-    <section className="mb-12">
-      <h2 className="text-xl font-bold text-navy">Historique des voyages</h2>
-      <p className="mt-1 text-sm text-gray-500">
+    <section>
+      <p className="text-sm text-gray-500">
         Ajoutez photos et vidéos uniquement si les personnes visibles ont
         accepté la publication. Voir{" "}
         <a href="/droits-images" className="font-semibold text-gold">

@@ -1,0 +1,20 @@
+{
+  "kicker": "À propos",
+  "title": "MD Tours, pour voyager autrement",
+  "subtitle": "Nous concevons des séjours authentiques en Afrique, avec un accompagnement humain avant, pendant et après le voyage.",
+  "blocks": [
+    {
+      "id": "intro",
+      "type": "paragraph",
+      "text": "MD Tours est née d’une conviction simple : l’Afrique se vit intensément quand le voyage est préparé avec soin. Nous organisons des expériences au Ghana et en Afrique de l’Ouest — villes, patrimoine, nature et rencontres — pour des voyageurs qui veulent plus qu’un séjour standard.",
+      "caption": ""
+    },
+    {
+      "id": "suivi",
+      "type": "paragraph",
+      "text": "Notre équipe s’occupe des itinéraires, des hébergements, des transferts et du suivi. Vous restez libres de savourer le moment ; nous veillons à ce que chaque étape soit claire, sûre et mémorable.",
+      "caption": ""
+    }
+  ],
+  "updatedAt": "2026-08-23T22:42:15.422Z"
+}

@@ -5,7 +5,7 @@ import { Clock, Star, Users } from "lucide-react";
 import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
 import PlacesBadge from "@/components/PlacesBadge";
-import { formatPrice } from "@/data/home";
+import TripPrice from "@/components/TripPrice";
 import { getDestinations } from "@/lib/store";
 
 export default async function VoyagePage({
@@ -78,8 +78,8 @@ export default async function VoyagePage({
               <PlacesBadge dest={destination} variant="light" />
             </span>
           </div>
-          <p className="mt-4 text-2xl font-bold text-navy">
-            À partir de {formatPrice(destination.price)} FCFA
+          <p className="mt-4 text-2xl">
+            <TripPrice dest={destination} />
           </p>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-600">
             {destination.description ||

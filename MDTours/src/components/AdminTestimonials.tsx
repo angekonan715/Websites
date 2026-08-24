@@ -109,9 +109,8 @@ export default function AdminTestimonials() {
   const published = testimonials.filter((item) => item.status === "approved");
 
   return (
-    <section className="mb-12">
-      <h2 className="text-xl font-bold text-navy">Témoignages clients</h2>
-      <p className="mt-1 text-sm text-gray-500">
+    <section>
+      <p className="text-sm text-gray-500">
         Le texte d’un avis n’est pas modifiable. Les clients publient
         directement sur l’historique. N’ajoutez une photo que si le client (et
         les personnes visibles) ont accepté.{" "}

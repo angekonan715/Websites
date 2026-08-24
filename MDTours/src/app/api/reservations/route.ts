@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { tripUnitPrice } from "@/lib/pricing";
 import {
   createBookingReference,
   getDestinations,
@@ -101,8 +102,8 @@ export async function POST(request: Request) {
       phone,
       departureDate,
       travelers,
-      unitPrice: destination.price,
-      totalPrice: destination.price * travelers,
+      unitPrice: tripUnitPrice(destination),
+      totalPrice: tripUnitPrice(destination) * travelers,
       notes,
       status: "awaiting_contact",
       createdAt: now,

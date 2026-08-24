@@ -2,13 +2,18 @@ import { promises as fs } from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
 import { persistDestination, withAvailability } from "./availability";
+import { keepLiveCampaigns } from "./campaigns";
 import type {
+  AboutPage,
+  Campaign,
+  ClientNote,
   ContactMessage,
   CustomTripRequest,
   Destination,
   HistoryTrip,
   PersonalizedCatalog,
   Reservation,
+  ShareLink,
   Testimonial,
   TestimonyInvite,
   User,
@@ -24,6 +29,29 @@ const messagesPath = path.join(dataDir, "messages.json");
 const customTripsPath = path.join(dataDir, "custom-trips.json");
 const historyPath = path.join(dataDir, "history.json");
 const personalizedCatalogPath = path.join(dataDir, "personalized-catalog.json");
+const aboutPath = path.join(dataDir, "about.json");
+const campaignsPath = path.join(dataDir, "campaigns.json");
+const clientNotesPath = path.join(dataDir, "client-notes.json");
+const shareLinksPath = path.join(dataDir, "share-links.json");
+
+const defaultAbout: AboutPage = {
+  kicker: "À propos",
+  title: "MD Tours, pour voyager autrement",
+  subtitle:
+    "Nous concevons des séjours authentiques en Afrique, avec un accompagnement humain avant, pendant et après le voyage.",
+  blocks: [
+    {
+      id: "intro",
+      type: "paragraph",
+      text: "MD Tours est née d’une conviction simple : l’Afrique se vit intensément quand le voyage est préparé avec soin. Nous organisons des expériences au Ghana et en Afrique de l’Ouest — villes, patrimoine, nature et rencontres — pour des voyageurs qui veulent plus qu’un séjour standard.",
+    },
+    {
+      id: "suivi",
+      type: "paragraph",
+      text: "Notre équipe s’occupe des itinéraires, des hébergements, des transferts et du suivi. Vous restez libres de savourer le moment ; nous veillons à ce que chaque étape soit claire, sûre et mémorable.",
+    },
+  ],
+};
 
 async function ensureDataDir() {
   await fs.mkdir(dataDir, { recursive: true });
@@ -229,4 +257,47 @@ export async function getPersonalizedCatalog() {
 
 export async function savePersonalizedCatalog(catalog: PersonalizedCatalog) {
   await writeJson(personalizedCatalogPath, catalog);
+}
+
+export async function getAboutPage(): Promise<AboutPage> {
+  const page = await readJson<AboutPage | null>(aboutPath, null);
+  if (!page || !page.title) return defaultAbout;
+  return {
+    ...defaultAbout,
+    ...page,
+    blocks: Array.isArray(page.blocks) ? page.blocks : defaultAbout.blocks,
+  };
+}
+
+export async function saveAboutPage(page: AboutPage) {
+  await writeJson(aboutPath, page);
+}
+
+export async function getCampaigns(): Promise<Campaign[]> {
+  const items = await readJson<Campaign[]>(campaignsPath, []);
+  const live = keepLiveCampaigns(items);
+  if (live.length !== items.length) {
+    await writeJson(campaignsPath, live);
+  }
+  return live;
+}
+
+export async function saveCampaigns(items: Campaign[]) {
+  await writeJson(campaignsPath, items);
+}
+
+export async function getClientNotes(): Promise<ClientNote[]> {
+  return readJson<ClientNote[]>(clientNotesPath, []);
+}
+
+export async function saveClientNotes(items: ClientNote[]) {
+  await writeJson(clientNotesPath, items);
+}
+
+export async function getShareLinks(): Promise<ShareLink[]> {
+  return readJson<ShareLink[]>(shareLinksPath, []);
+}
+
+export async function saveShareLinks(items: ShareLink[]) {
+  await writeJson(shareLinksPath, items);
 }

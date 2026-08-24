@@ -58,6 +58,9 @@ export function persistDestination(destination: Destination): Destination {
     gallery: destination.gallery,
     description: destination.description,
     capacity: destinationCapacity(destination),
+    promotionEnabled: Boolean(destination.promotionEnabled),
+    promotionLabel: destination.promotionLabel,
+    promotionPrice: destination.promotionPrice,
   };
 }
 

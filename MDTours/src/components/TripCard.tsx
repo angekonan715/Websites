@@ -1,7 +1,7 @@
 import { ArrowRight, Clock, Star } from "lucide-react";
 import Image from "next/image";
 import PlacesBadge from "@/components/PlacesBadge";
-import { formatPrice } from "@/data/home";
+import TripPrice from "@/components/TripPrice";
 import type { Destination } from "@/lib/types";
 
 export default function TripCard({ dest }: { dest: Destination }) {
@@ -29,8 +29,8 @@ export default function TripCard({ dest }: { dest: Destination }) {
             <Clock className="h-3.5 w-3.5" />
             {dest.duration}
           </div>
-          <p className="mt-1 text-xs font-bold text-white sm:mt-2 sm:text-sm">
-            À partir de {formatPrice(dest.price)} FCFA
+          <p className="mt-1 text-xs sm:mt-2 sm:text-sm">
+            <TripPrice dest={dest} light />
           </p>
           <div className="mt-2 flex items-center justify-between sm:mt-3">
             <div className="flex items-center gap-1">

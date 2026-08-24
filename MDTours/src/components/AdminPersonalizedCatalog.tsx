@@ -211,8 +211,8 @@ export default function AdminPersonalizedCatalog() {
   }
 
   return (
-    <section className="mb-12">
-      <h2 className="text-xl font-bold text-navy">Tarifs du voyage personnalisé</h2>
+    <section>
+      <h3 className="text-lg font-bold text-navy">Tarifs du voyage personnalisé</h3>
       <p className="mt-1 text-sm text-gray-500">
         Modifiez les villes, les activités et les tarifs. Les changements
         apparaissent tout de suite sur le voyage personnalisé.

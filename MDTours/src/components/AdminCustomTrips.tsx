@@ -68,8 +68,8 @@ export default function AdminCustomTrips() {
   }
 
   return (
-    <section className="mb-12">
-      <h2 className="text-xl font-bold text-navy">Voyages personnalisés</h2>
+    <section>
+      <h3 className="text-lg font-bold text-navy">Demandes des clients</h3>
       <p className="mt-1 text-sm text-gray-500">
         Les clients composent un séjour. Le devis calculé s’affiche ici.
       </p>

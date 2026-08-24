@@ -83,7 +83,7 @@ export function formatPrice(price: number): string {
 export const agencyContact = {
   phone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "+225 07 00 00 00 00",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "2250700000000",
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@mdtours.com",
+  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "contact@voyagezmdtours.com",
 };
 
 export const reservationStatusLabel: Record<string, string> = {

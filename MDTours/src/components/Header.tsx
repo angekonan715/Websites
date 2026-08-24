@@ -6,6 +6,7 @@ import { ChevronDown, Menu, MessageCircle, X } from "lucide-react";
 import Logo from "./Logo";
 import AuthMenu from "./AuthMenu";
 import AdminViewSwitcher from "./AdminViewSwitcher";
+import CampaignTicker from "./CampaignTicker";
 import { agencyContact, navLinks } from "@/data/home";
 
 interface HeaderProps {
@@ -38,6 +39,7 @@ export default function Header({ variant = "overlay" }: HeaderProps) {
       }
     >
       <AdminViewSwitcher />
+      <CampaignTicker />
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:px-6 sm:pb-5 sm:pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-8">
         <Logo />
 

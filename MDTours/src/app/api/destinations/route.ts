@@ -22,6 +22,9 @@ function readTripFields(formData: FormData) {
     reviews: Number(formData.get("reviews") || 0),
     description: String(formData.get("description") ?? "").trim(),
     capacity: Number(formData.get("capacity") || DEFAULT_CAPACITY),
+    promotionEnabled: String(formData.get("promotionEnabled") ?? "") === "1",
+    promotionLabel: String(formData.get("promotionLabel") ?? "").trim(),
+    promotionPrice: Number(formData.get("promotionPrice") || 0),
   };
 }
 
@@ -63,6 +66,17 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (
+      fields.promotionEnabled &&
+      (!Number.isFinite(fields.promotionPrice) ||
+        fields.promotionPrice <= 0 ||
+        fields.promotionPrice >= fields.price)
+    ) {
+      return NextResponse.json(
+        { error: "Le prix promotionnel doit être inférieur au prix normal." },
+        { status: 400 }
+      );
+    }
     if (!isImageFile(imageFile)) {
       return NextResponse.json(
         { error: "Ajoutez une photo de couverture (JPG, PNG ou WEBP)." },
@@ -94,6 +108,9 @@ export async function POST(request: Request) {
       reviews: Math.max(0, fields.reviews),
       description: fields.description,
       capacity: Math.floor(fields.capacity),
+      promotionEnabled: fields.promotionEnabled,
+      promotionLabel: fields.promotionLabel,
+      promotionPrice: fields.promotionEnabled ? fields.promotionPrice : 0,
       image,
       gallery,
       video: isVideoFile(videoFile)
@@ -138,6 +155,17 @@ export async function PATCH(request: Request) {
         { status: 400 }
       );
     }
+    if (
+      fields.promotionEnabled &&
+      (!Number.isFinite(fields.promotionPrice) ||
+        fields.promotionPrice <= 0 ||
+        fields.promotionPrice >= fields.price)
+    ) {
+      return NextResponse.json(
+        { error: "Le prix promotionnel doit être inférieur au prix normal." },
+        { status: 400 }
+      );
+    }
     if (fields.capacity < (destination.bookedPlaces ?? 0)) {
       return NextResponse.json(
         {
@@ -155,6 +183,11 @@ export async function PATCH(request: Request) {
     destination.reviews = Math.max(0, fields.reviews);
     destination.description = fields.description;
     destination.capacity = Math.floor(fields.capacity);
+    destination.promotionEnabled = fields.promotionEnabled;
+    destination.promotionLabel = fields.promotionLabel;
+    destination.promotionPrice = fields.promotionEnabled
+      ? fields.promotionPrice
+      : 0;
 
     const imageFile = formData.get("image");
     if (isImageFile(imageFile)) {

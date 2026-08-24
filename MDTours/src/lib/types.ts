@@ -13,6 +13,51 @@ export interface Destination {
   capacity: number;
   bookedPlaces?: number;
   availablePlaces?: number;
+  promotionEnabled?: boolean;
+  promotionLabel?: string;
+  promotionPrice?: number;
+}
+
+export type AboutBlockType = "heading" | "paragraph" | "image";
+
+export interface AboutBlock {
+  id: string;
+  type: AboutBlockType;
+  text?: string;
+  image?: string;
+  caption?: string;
+}
+
+export interface AboutPage {
+  kicker: string;
+  title: string;
+  subtitle: string;
+  blocks: AboutBlock[];
+  updatedAt?: string;
+}
+
+export interface Campaign {
+  id: string;
+  message: string;
+  href?: string;
+  active: boolean;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export type ShareLinkSource = "instagram" | "tiktok" | "facebook" | "whatsapp" | "other";
+
+export interface ShareLink {
+  id: string;
+  slug: string;
+  title: string;
+  target: string;
+  source: ShareLinkSource;
+  active: boolean;
+  showOnBio: boolean;
+  clicks: number;
+  createdAt: string;
+  lastClickedAt?: string;
 }
 
 export type UserRole = "user" | "admin";
@@ -45,6 +90,43 @@ export type ReservationStatus =
   | "payment_received"
   | "confirmed"
   | "cancelled";
+
+export interface ClientNote {
+  id: string;
+  notes: string;
+  updatedAt: string;
+}
+
+export interface ClientTripRecord {
+  kind: "reservation" | "custom";
+  id: string;
+  reference: string;
+  title: string;
+  departureDate: string;
+  travelers: number;
+  amount: number;
+  paidAmount: number;
+  status: string;
+  statusLabel: string;
+  createdAt: string;
+}
+
+export interface ClientRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  bookingCount: number;
+  confirmedCount: number;
+  travelersTotal: number;
+  amountPaid: number;
+  amountEngaged: number;
+  lastActivityAt: string;
+  notes: string;
+  currentTripTitle: string;
+  currentTripDate: string;
+  trips: ClientTripRecord[];
+}
 
 export interface Reservation {
   id: string;
