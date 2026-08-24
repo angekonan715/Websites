@@ -1,51 +1,40 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import PhoneInput from "@/components/PhoneInput";
+import { FormEvent, useMemo, useState } from "react";
+import { MessageCircle } from "lucide-react";
 import { agencyContact } from "@/data/home";
 
 export default function ContactForm() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [sent, setSent] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const whatsappHref = useMemo(() => {
+    const lines = [
+      name.trim() ? `Bonjour, je m’appelle ${name.trim()}.` : "Bonjour MD Tours,",
+      "",
+      message.trim() || "Je souhaite être recontacté(e) au sujet d’un voyage.",
+    ];
+    return `https://wa.me/${agencyContact.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }, [name, message]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    setSaving(true);
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, message }),
-      });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        setError(data.error ?? "Envoi impossible.");
-        return;
-      }
-      setSent(true);
-    } catch {
-      setError("Envoi impossible.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (sent) {
-    return (
-      <p className="rounded-2xl bg-emerald-50 p-6 text-sm text-emerald-800">
-        Message envoyé. MD Tours vous recontactera bientôt.
-      </p>
-    );
+    window.open(whatsappHref, "_blank", "noopener,noreferrer");
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-gray-50 p-4 sm:p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-sm bg-white p-5 shadow-card sm:p-6"
+    >
+      <p className="section-kicker">WhatsApp</p>
+      <h2 className="font-editorial text-2xl font-semibold text-navy">
+        Envoyez-nous un message
+      </h2>
+      <p className="text-sm leading-relaxed text-navy/70">
+        Votre message s’ouvre dans WhatsApp. MD Tours vous répond par WhatsApp
+        ou par email sous 24 heures.
+      </p>
       <label className="block text-sm font-medium text-navy">
         Nom
         <input
@@ -56,20 +45,6 @@ export default function ContactForm() {
         />
       </label>
       <label className="block text-sm font-medium text-navy">
-        Email
-        <input
-          required
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-        />
-      </label>
-      <div className="text-sm font-medium text-navy">
-        Téléphone
-        <PhoneInput id="contact-phone" value={phone} onChange={setPhone} />
-      </div>
-      <label className="block text-sm font-medium text-navy">
         Message
         <textarea
           required
@@ -77,14 +52,13 @@ export default function ContactForm() {
           rows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          placeholder="Parlez-nous de votre projet de voyage…"
           className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
         />
       </label>
-      {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-      )}
-      <button type="submit" disabled={saving} className="btn-gold">
-        {saving ? "Envoi..." : "Envoyer"}
+      <button type="submit" className="btn-gold w-full sm:w-auto">
+        <MessageCircle className="h-4 w-4" />
+        Envoyer sur WhatsApp
       </button>
     </form>
   );

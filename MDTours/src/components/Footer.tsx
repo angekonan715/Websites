@@ -38,9 +38,16 @@ export default function Footer() {
           </p>
           <p className="mt-4 text-sm text-white/80">{agencyContact.phone}</p>
           <p className="text-sm text-white/80">{agencyContact.email}</p>
+          <a
+            href={`https://wa.me/${agencyContact.whatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-block text-sm font-semibold text-gold hover:underline"
+          >
+            WhatsApp
+          </a>
           <p className="mt-3 text-xs leading-relaxed text-white/50">
-            Écrivez-nous ou passez par WhatsApp. Un conseiller vous répond
-            pour préparer votre départ.
+            Un conseiller vous recontacte par email ou WhatsApp sous 24 heures.
           </p>
         </div>
         <div>
