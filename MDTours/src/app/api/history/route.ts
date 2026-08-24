@@ -5,7 +5,7 @@ import {
   saveHistoryTrips,
   slugify,
 } from "@/lib/store";
-import { saveProcessedImage, saveProcessedVideo } from "@/lib/media";
+import { saveProcessedImage, saveProcessedVideo, isImageFile, isVideoFile } from "@/lib/media";
 import type { HistoryTrip } from "@/lib/types";
 
 export async function GET() {
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const id = `${slugify(title) || "souvenir"}-${Date.now()}`;
     const images: string[] = [];
     for (const [index, file] of files.entries()) {
-      if (file instanceof File && file.size > 0 && file.type.startsWith("image/")) {
+      if (isImageFile(file)) {
         images.push(
           await saveProcessedImage(file, "images", `${id}-${index}`, "wide")
         );
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     let video = "";
-    if (videoFile instanceof File && videoFile.size > 0 && videoFile.type.startsWith("video/")) {
+    if (isVideoFile(videoFile)) {
       video = await saveProcessedVideo(videoFile, id);
     }
 

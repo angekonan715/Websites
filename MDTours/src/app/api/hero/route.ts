@@ -1,23 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { saveProcessedImage, saveProcessedVideo } from "@/lib/media";
+import { isImageFile, isUploadedFile, isVideoFile, saveProcessedImage, saveProcessedVideo } from "@/lib/media";
 import { getHeroSettings, saveHeroSettings } from "@/lib/store";
-
-function isImageFile(value: FormDataEntryValue | null): value is File {
-  return (
-    value instanceof File &&
-    value.size > 0 &&
-    ["image/jpeg", "image/png", "image/webp", "image/jpg"].includes(value.type)
-  );
-}
-
-function isVideoFile(value: FormDataEntryValue | null): value is File {
-  return (
-    value instanceof File &&
-    value.size > 0 &&
-    ["video/mp4", "video/webm", "video/quicktime"].includes(value.type)
-  );
-}
 
 export async function GET() {
   return NextResponse.json({ hero: await getHeroSettings() });
@@ -38,6 +22,12 @@ export async function PUT(request: Request) {
 
     const uploadedImage = formData.get("image");
     const sourceImage = String(formData.get("sourceImage") ?? "").trim();
+    if (isUploadedFile(uploadedImage) && !isImageFile(uploadedImage)) {
+      return NextResponse.json(
+        { error: "Cette photo n’est pas lisible. Envoyez un JPG, PNG ou WEBP." },
+        { status: 400 }
+      );
+    }
     if (isImageFile(uploadedImage)) {
       image = await saveProcessedImage(uploadedImage, "background", `hero-${stamp}`, "hero");
     } else if (sourceImage.startsWith("/")) {
@@ -49,6 +39,12 @@ export async function PUT(request: Request) {
     } else {
       const uploadedVideo = formData.get("video");
       const sourceVideo = String(formData.get("sourceVideo") ?? "").trim();
+      if (isUploadedFile(uploadedVideo) && !isVideoFile(uploadedVideo)) {
+        return NextResponse.json(
+          { error: "Cette vidéo n’est pas lisible. Envoyez un MP4 ou WEBM." },
+          { status: 400 }
+        );
+      }
       if (isVideoFile(uploadedVideo)) {
         video = await saveProcessedVideo(uploadedVideo, `hero-${stamp}`);
       } else if (sourceVideo.startsWith("/")) {

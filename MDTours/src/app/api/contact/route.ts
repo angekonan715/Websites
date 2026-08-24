@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendContactMessageEmail } from "@/lib/email";
 import { getContactMessages, saveContactMessages } from "@/lib/store";
 
 export async function POST(request: Request) {
@@ -31,6 +32,13 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     });
     await saveContactMessages(messages);
+
+    try {
+      await sendContactMessageEmail({ name, email, phone, message });
+    } catch {
+      // Le message est enregistré même si l’envoi SMTP n’est pas encore configuré.
+    }
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Envoi impossible." }, { status: 500 });

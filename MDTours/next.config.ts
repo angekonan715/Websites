@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   serverExternalPackages: ["sharp", "ffmpeg-static"],
+  images: {
+    unoptimized: true,
+  },
   async redirects() {
     return [
       { source: "/blog", destination: "/", permanent: true },

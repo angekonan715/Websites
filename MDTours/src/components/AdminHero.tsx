@@ -156,7 +156,7 @@ export default function AdminHero() {
           Photo (recadrée 16:9)
           <input
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept="image/*"
             onChange={(e) => setImage(e.target.files?.[0] ?? null)}
             className="mt-1 block w-full text-sm"
           />

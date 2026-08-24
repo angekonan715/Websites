@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getTestimonials, savePublicFile, saveTestimonials } from "@/lib/store";
+import { isImageFile } from "@/lib/media";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
 
     const images = [...(item.images ?? [])];
     for (const [index, file] of files.entries()) {
-      if (file instanceof File && file.size > 0 && file.type.startsWith("image/")) {
+      if (isImageFile(file)) {
         images.push(await savePublicFile(file, "images", `${id}-${Date.now()}-${index}`));
       }
     }

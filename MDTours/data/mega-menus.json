@@ -36,6 +36,27 @@
           "description": "Plages et lumière de l’Atlantique, pour se poser après la route."
         }
       ]
+    },
+    {
+      "id": "af5c8c76-b9d5-4688-b426-2198f3b7ffdb",
+      "label": "Senegal",
+      "href": "/destinations/af5c8c76-b9d5-4688-b426-2198f3b7ffdb",
+      "image": "/images/menu-destinations-af5c8c76-b9d5-4688-b426-2198f3b7ffdb-1787604809067.jpg",
+      "tagline": "Water fall Senegal",
+      "destinations": [
+        {
+          "id": "5a574f31-e050-43ad-9095-f4f761c2c81f",
+          "label": "Water Fall",
+          "href": "/destinations/af5c8c76-b9d5-4688-b426-2198f3b7ffdb/5a574f31-e050-43ad-9095-f4f761c2c81f",
+          "image": "/images/lieu-af5c8c76-b9d5-4688-b426-2198f3b7ffdb-5a574f31-e050-43ad-9095-f4f761c2c81f-1787604809252.jpg"
+        },
+        {
+          "id": "bd2fec69-c9f1-41da-9f1a-a2ac0a2a52b5",
+          "label": "Lion du Senegal",
+          "href": "/destinations/af5c8c76-b9d5-4688-b426-2198f3b7ffdb/bd2fec69-c9f1-41da-9f1a-a2ac0a2a52b5",
+          "image": "/images/lieu-af5c8c76-b9d5-4688-b426-2198f3b7ffdb-bd2fec69-c9f1-41da-9f1a-a2ac0a2a52b5-1787604809446.jpg"
+        }
+      ]
     }
   ],
   "voyages": [

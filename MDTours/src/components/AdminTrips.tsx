@@ -483,7 +483,7 @@ export default function AdminTrips() {
                         : "Photo du jour (optionnel)"}
                     <input
                       type="file"
-                      accept="image/png,image/jpeg,image/webp"
+                      accept="image/*"
                       className="hidden"
                       onChange={(e) =>
                         setItinerary((current) =>
@@ -515,7 +515,7 @@ export default function AdminTrips() {
           </span>
           <input
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+                      accept="image/*"
             required={!editingId}
             className="hidden"
             onChange={(e) => setImage(e.target.files?.[0] ?? null)}
@@ -560,7 +560,7 @@ export default function AdminTrips() {
           <input
             type="file"
             multiple
-            accept="image/png,image/jpeg,image/webp"
+                      accept="image/*"
             className="hidden"
             onChange={(e) => setGallery(Array.from(e.target.files ?? []))}
           />

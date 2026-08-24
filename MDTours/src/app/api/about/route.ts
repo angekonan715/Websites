@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getAboutPage, saveAboutPage, savePublicFile } from "@/lib/store";
+import { isImageFile } from "@/lib/media";
 import type { AboutBlock, AboutPage } from "@/lib/types";
-
-const imageTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 
 export async function GET() {
   const page = await getAboutPage();
@@ -45,11 +44,7 @@ export async function PUT(request: Request) {
         image: block.image,
       };
       const file = formData.get(`image-${block.id}`);
-      if (
-        file instanceof File &&
-        file.size > 0 &&
-        imageTypes.includes(file.type)
-      ) {
+      if (isImageFile(file)) {
         next.image = await savePublicFile(
           file,
           "images",

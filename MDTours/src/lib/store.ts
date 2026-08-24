@@ -245,14 +245,16 @@ export async function savePublicFile(
   folder: "images" | "video",
   basename: string
 ) {
-  const type = file.type;
+  const type = (file.type || "").toLowerCase();
+  const name = (file.name || "").toLowerCase();
   let extension = "";
-  if (type === "image/png") extension = ".png";
-  else if (type === "image/webp") extension = ".webp";
-  else if (type === "image/jpeg" || type === "image/jpg") extension = ".jpg";
-  else if (type === "video/mp4") extension = ".mp4";
-  else if (type === "video/webm") extension = ".webm";
-  else throw new Error("Format de fichier non pris en charge.");
+  if (type === "image/png" || name.endsWith(".png")) extension = ".png";
+  else if (type === "image/webp" || name.endsWith(".webp")) extension = ".webp";
+  else if (type.includes("jpeg") || type === "image/jpg" || /\.jpe?g$/.test(name))
+    extension = ".jpg";
+  else if (type === "video/mp4" || name.endsWith(".mp4")) extension = ".mp4";
+  else if (type === "video/webm" || name.endsWith(".webm")) extension = ".webm";
+  else throw new Error("Format de fichier non pris en charge. Utilisez JPG, PNG, WEBP ou MP4.");
 
   const filename = `${basename}${extension}`;
   const dir = path.join(process.cwd(), "public", folder);

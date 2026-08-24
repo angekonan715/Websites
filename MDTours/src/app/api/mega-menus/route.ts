@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getMegaMenus, getStoredMegaMenus, saveMegaMenus } from "@/lib/store";
-import { saveProcessedImage } from "@/lib/media";
+import { isImageFile, saveProcessedImage } from "@/lib/media";
 import { placePath, regionPath, slugify } from "@/lib/megaMenus";
 import type { MegaMenuKey, MegaMenuRegion, MegaMenus } from "@/lib/types";
-
-const imageTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-
-function isImageFile(value: FormDataEntryValue | null): value is File {
-  return value instanceof File && value.size > 0 && imageTypes.includes(value.type);
-}
 
 function sanitizeRegions(value: unknown, key: MegaMenuKey): MegaMenuRegion[] {
   if (!Array.isArray(value)) return [];

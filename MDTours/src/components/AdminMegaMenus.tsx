@@ -229,7 +229,7 @@ export default function AdminMegaMenus() {
                 Photo du pays / de la région
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/webp"
+                  accept="image/*"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) setFiles((current) => ({ ...current, [`image-${region.id}`]: file }));
@@ -292,7 +292,7 @@ export default function AdminMegaMenus() {
                         Photo
                         <input
                           type="file"
-                          accept="image/png,image/jpeg,image/webp"
+                          accept="image/*"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {

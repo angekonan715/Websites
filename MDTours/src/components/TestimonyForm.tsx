@@ -166,7 +166,7 @@ export default function NewTestimonialForm() {
                 </span>
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/*"
                   multiple
                   className="sr-only"
                   onChange={(e) => {

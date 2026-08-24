@@ -16,6 +16,29 @@ export type PublicFolder = "images" | "video" | "background";
 
 export const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
 
+const IMAGE_NAME = /\.(jpe?g|png|webp|gif|avif|heic|heif|bmp)$/i;
+const VIDEO_NAME = /\.(mp4|webm|mov|m4v)$/i;
+
+export function isUploadedFile(value: FormDataEntryValue | null): value is File {
+  if (!value || typeof value === "string") return false;
+  const file = value as File;
+  return typeof file.arrayBuffer === "function" && Number(file.size) > 0;
+}
+
+export function isImageFile(value: FormDataEntryValue | null): value is File {
+  if (!isUploadedFile(value)) return false;
+  const type = (value.type || "").toLowerCase();
+  const name = value.name || "";
+  return type.startsWith("image/") || IMAGE_NAME.test(name);
+}
+
+export function isVideoFile(value: FormDataEntryValue | null): value is File {
+  if (!isUploadedFile(value)) return false;
+  const type = (value.type || "").toLowerCase();
+  const name = value.name || "";
+  return type.startsWith("video/") || VIDEO_NAME.test(name);
+}
+
 function publicDir(folder: PublicFolder) {
   return path.join(process.cwd(), "public", folder);
 }
@@ -41,11 +64,17 @@ export async function saveProcessedImage(
   const dir = publicDir(folder);
   await fs.mkdir(dir, { recursive: true });
   const filename = `${basename}.jpg`;
-  await sharp(await toBuffer(input))
-    .rotate()
-    .resize(width, height, { fit: "cover", position: "centre" })
-    .jpeg({ quality: 82, mozjpeg: true })
-    .toFile(path.join(dir, filename));
+  try {
+    await sharp(await toBuffer(input))
+      .rotate()
+      .resize(width, height, { fit: "cover", position: "centre" })
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toFile(path.join(dir, filename));
+  } catch {
+    throw new Error(
+      "Cette photo n’a pas pu être lue. Envoyez un JPG, PNG ou WEBP (pas HEIC)."
+    );
+  }
   return `/${folder}/${filename}`;
 }
 
@@ -65,7 +94,7 @@ function runFfmpeg(bin: string, args: string[]) {
 }
 
 export async function saveProcessedVideo(input: File | string, basename: string) {
-  if (input instanceof File && input.size > MAX_VIDEO_BYTES) {
+  if (isUploadedFile(input) && input.size > MAX_VIDEO_BYTES) {
     throw new Error("La vidéo dépasse 80 Mo. Compressez-la un peu, puis réessayez.");
   }
 

@@ -7,6 +7,7 @@ import {
   savePublicFile,
   saveTestimonials,
 } from "@/lib/store";
+import { isImageFile } from "@/lib/media";
 import type { Testimonial } from "@/lib/types";
 
 export async function GET() {
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
       imageRightsAccepted =
         String(formData.get("imageRights") ?? "") === "1";
       for (const entry of formData.getAll("images")) {
-        if (entry instanceof File && entry.size > 0) files.push(entry);
+        if (isImageFile(entry)) files.push(entry);
       }
     } else {
       const body = (await request.json()) as {

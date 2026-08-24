@@ -68,6 +68,70 @@ function itineraryHtml(destination?: Destination) {
   `;
 }
 
+function fromAddress() {
+  return process.env.EMAIL_FROM || `MD Tours <${process.env.SMTP_USER}>`;
+}
+
+function agencyInbox() {
+  return (
+    process.env.CONTACT_INBOX?.trim() ||
+    agencyContact.email ||
+    "mdcontact@voyagezmdtours.com"
+  );
+}
+
+export async function sendContactMessageEmail(options: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    throw new Error("Email non envoyé : SMTP non configuré.");
+  }
+
+  const inbox = agencyInbox();
+  const text = [
+    "Nouveau message depuis le site MD Tours.",
+    "",
+    `Nom : ${options.name}`,
+    `Email : ${options.email}`,
+    options.phone ? `Téléphone : ${options.phone}` : "",
+    "",
+    options.message,
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1A1A2E">
+      <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
+      <h1 style="font-size:22px;margin:8px 0 16px">Nouveau message du site</h1>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0">
+        <tr><td style="padding:8px 0;color:#666">Nom</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(options.name)}</td></tr>
+        <tr><td style="padding:8px 0;color:#666">Email</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(options.email)}</td></tr>
+        ${
+          options.phone
+            ? `<tr><td style="padding:8px 0;color:#666">Téléphone</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(options.phone)}</td></tr>`
+            : ""
+        }
+      </table>
+      <p style="white-space:pre-wrap;line-height:1.6">${escapeHtml(options.message)}</p>
+      <p style="font-size:13px;color:#666">Répondez directement à cet email pour écrire à ${escapeHtml(options.email)}.</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: fromAddress(),
+    to: inbox,
+    replyTo: options.email,
+    subject: `Message du site — ${options.name}`,
+    text,
+    html,
+  });
+}
+
 export async function sendTripInquiryEmail(
   reservation: Reservation,
   destination: Destination
@@ -79,9 +143,7 @@ export async function sendTripInquiryEmail(
     );
   }
 
-  const from =
-    process.env.EMAIL_FROM ||
-    `MD Tours <${process.env.SMTP_USER}>`;
+  const from = fromAddress();
   const program = itineraryText(destination);
   const text = [
     `Bonjour ${reservation.name},`,
@@ -120,7 +182,7 @@ export async function sendTripInquiryEmail(
   await transporter.sendMail({
     from,
     to: reservation.email,
-    cc: agencyContact.email,
+    cc: agencyInbox(),
     subject: `Votre voyage MD Tours — ${reservation.reference}`,
     text,
     html,
@@ -141,9 +203,7 @@ export async function sendTripConfirmationEmail(
   const departure = reservation.departureDate
     ? new Date(`${reservation.departureDate}T00:00:00`).toLocaleDateString("fr-FR")
     : "à confirmer";
-  const from =
-    process.env.EMAIL_FROM ||
-    `MD Tours <${process.env.SMTP_USER}>`;
+  const from = fromAddress();
 
   const text = [
     `Bonjour ${reservation.name},`,
@@ -196,8 +256,7 @@ export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
     throw new Error("Email non envoyé : SMTP non configuré.");
   }
 
-  const from =
-    process.env.EMAIL_FROM || `MD Tours <${process.env.SMTP_USER}>`;
+  const from = fromAddress();
   const departure = new Date(`${trip.departureDate}T00:00:00`).toLocaleDateString("fr-FR");
   const back = new Date(`${trip.returnDate}T00:00:00`).toLocaleDateString("fr-FR");
   const lines = (trip.quote?.breakdown ?? [])
@@ -251,6 +310,7 @@ export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
   await transporter.sendMail({
     from,
     to: trip.email,
+    cc: agencyInbox(),
     subject: `Votre devis MD Tours — ${trip.reference}`,
     text,
     html,
@@ -280,8 +340,7 @@ export async function sendPasswordResetEmail(options: {
     throw new Error("Email non envoyé : SMTP non configuré.");
   }
 
-  const from =
-    process.env.EMAIL_FROM || `MD Tours <${process.env.SMTP_USER}>`;
+  const from = fromAddress();
   const safeName = escapeHtml(options.name);
   const text = [
     `Bonjour ${options.name},`,

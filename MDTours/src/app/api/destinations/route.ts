@@ -6,11 +6,8 @@ import {
   saveDestinations,
   slugify,
 } from "@/lib/store";
-import { saveProcessedImage, saveProcessedVideo } from "@/lib/media";
+import { saveProcessedImage, saveProcessedVideo, isImageFile, isVideoFile } from "@/lib/media";
 import type { Destination, TripItineraryDay } from "@/lib/types";
-
-const imageTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-const videoTypes = ["video/mp4", "video/webm"];
 
 function readTripFields(formData: FormData) {
   return {
@@ -71,14 +68,6 @@ async function withItineraryImages(
     }
   }
   return next;
-}
-
-function isImageFile(value: FormDataEntryValue | null): value is File {
-  return value instanceof File && value.size > 0 && imageTypes.includes(value.type);
-}
-
-function isVideoFile(value: FormDataEntryValue | null): value is File {
-  return value instanceof File && value.size > 0 && videoTypes.includes(value.type);
 }
 
 export async function GET() {
