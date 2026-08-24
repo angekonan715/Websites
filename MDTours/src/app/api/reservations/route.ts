@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { sendTripInquiryEmail } from "@/lib/email";
 import { tripUnitPrice } from "@/lib/pricing";
@@ -115,11 +115,13 @@ export async function POST(request: Request) {
     reservations.push(reservation);
     await saveReservations(reservations);
 
-    try {
-      await sendTripInquiryEmail(reservation, destination);
-    } catch (error) {
-      console.error("Reservation email failed:", error);
-    }
+    after(async () => {
+      try {
+        await sendTripInquiryEmail(reservation, destination);
+      } catch (error) {
+        console.error("Reservation email failed:", error);
+      }
+    });
 
     return NextResponse.json({ reservation }, { status: 201 });
   } catch {

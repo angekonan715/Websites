@@ -54,22 +54,15 @@ export default function AdminReservations() {
     });
     const data = (await response.json()) as {
       error?: string;
-      emailSent?: boolean;
-      emailError?: string;
     };
     if (!response.ok) {
       setError(data.error ?? "Mise à jour impossible.");
       return;
     }
     if (status === "payment_received") {
-      if (data.emailSent) {
-        setNotice("Paiement confirmé. Un email de confirmation a été envoyé au client.");
-      } else {
-        setError(
-          data.emailError ||
-            "Paiement confirmé, mais l’email n’a pas pu être envoyé. Vérifiez SMTP dans .env.local."
-        );
-      }
+      setNotice(
+        "Paiement confirmé. L’email de confirmation est en cours d’envoi au client."
+      );
     }
     await load();
   }

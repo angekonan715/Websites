@@ -164,7 +164,7 @@ export default function CustomTripBuilder() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user) {
-      router.push("/connexion?next=/voyage-personnalise");
+      router.push("/connexion?mode=signup&next=/voyage-personnalise");
       return;
     }
     if (travelers < 1) {
@@ -181,10 +181,14 @@ export default function CustomTripBuilder() {
     }
     setError("");
     setSaving(true);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 20_000);
     try {
       const response = await fetch("/api/custom-trips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        signal: controller.signal,
         body: JSON.stringify({
           name,
           phone,
@@ -200,7 +204,7 @@ export default function CustomTripBuilder() {
           suggestion,
         }),
       });
-      const data = (await response.json()) as {
+      const data = (await response.json().catch(() => ({}))) as {
         error?: string;
         request?: { id: string };
       };
@@ -209,9 +213,14 @@ export default function CustomTripBuilder() {
         return;
       }
       router.push(`/voyage-personnalise/${data.request.id}`);
-    } catch {
-      setError("Enregistrement impossible.");
+    } catch (cause) {
+      setError(
+        cause instanceof DOMException && cause.name === "AbortError"
+          ? "L’enregistrement prend trop de temps. Réessayez."
+          : "Enregistrement impossible."
+      );
     } finally {
+      window.clearTimeout(timer);
       setSaving(false);
     }
   }
@@ -483,12 +492,28 @@ export default function CustomTripBuilder() {
         )}
 
         {!loading && !user && (
-          <p className="rounded-xl bg-gold/10 px-4 py-3 text-sm text-navy">
-            <a href="/connexion?next=/voyage-personnalise" className="font-semibold text-gold">
-              Connectez-vous
-            </a>{" "}
-            pour enregistrer ce devis. Le total reste visible pendant que vous composez.
-          </p>
+          <div className="rounded-xl border border-gold/30 bg-gold/10 px-4 py-4">
+            <p className="font-semibold text-navy">Créez un compte pour enregistrer ce voyage</p>
+            <p className="mt-1 text-sm text-gray-600">
+              Vous pouvez composer le devis, mais un compte est obligatoire pour
+              l’enregistrer.
+            </p>
+            <a
+              href="/connexion?mode=signup&next=/voyage-personnalise"
+              className="btn-gold mt-3 inline-flex"
+            >
+              Créer un compte
+            </a>
+            <p className="mt-3 text-sm text-gray-600">
+              Déjà inscrit ?{" "}
+              <a
+                href="/connexion?mode=signin&next=/voyage-personnalise"
+                className="font-semibold text-gold"
+              >
+                Connectez-vous
+              </a>
+            </p>
+          </div>
         )}
       </div>
 
@@ -520,13 +545,22 @@ export default function CustomTripBuilder() {
               </div>
             ))}
           </dl>
-          <button
-            type="submit"
-            disabled={saving || travelers < 1}
-            className="btn-gold mt-6 hidden w-full lg:inline-flex"
-          >
-            {saving ? "Enregistrement..." : "Enregistrer ce voyage"}
-          </button>
+          {user ? (
+            <button
+              type="submit"
+              disabled={saving || travelers < 1}
+              className="btn-gold mt-6 hidden w-full lg:inline-flex"
+            >
+              {saving ? "Enregistrement..." : "Enregistrer ce voyage"}
+            </button>
+          ) : (
+            <a
+              href="/connexion?mode=signup&next=/voyage-personnalise"
+              className="btn-gold mt-6 hidden w-full lg:inline-flex"
+            >
+              Créer un compte pour enregistrer
+            </a>
+          )}
           <p className="mt-3 text-xs text-white/50">
             Le montant s’affiche tout de suite. Un récapitulatif peut aussi être
             envoyé par e-mail après enregistrement.
@@ -544,13 +578,22 @@ export default function CustomTripBuilder() {
               {formatPrice(quote.total)} FCFA
             </p>
           </div>
-          <button
-            type="submit"
-            disabled={saving || travelers < 1}
-            className="btn-gold shrink-0 px-4 py-2.5 text-xs"
-          >
-            {saving ? "Enregistrement..." : "Enregistrer"}
-          </button>
+          {user ? (
+            <button
+              type="submit"
+              disabled={saving || travelers < 1}
+              className="btn-gold shrink-0 px-4 py-2.5 text-xs"
+            >
+              {saving ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          ) : (
+            <a
+              href="/connexion?mode=signup&next=/voyage-personnalise"
+              className="btn-gold shrink-0 px-4 py-2.5 text-xs"
+            >
+              Créer un compte
+            </a>
+          )}
         </div>
       </div>
     </form>

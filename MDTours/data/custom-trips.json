@@ -1,1 +1,66 @@
-[]
+[
+  {
+    "id": "d00321af-c1a1-4a6a-9fa6-22759f1b5998",
+    "reference": "P-MDT-NY4AJS",
+    "userId": "admin",
+    "name": "Administrateur",
+    "email": "admin@voyagezmdtours.com",
+    "phone": "+2252125165560",
+    "travelKind": "personnalise",
+    "travelKindLabel": "Voyage personnalisé",
+    "destination": "Cape Coast",
+    "departureDate": "2026-08-25",
+    "returnDate": "2026-08-30",
+    "travelers": 2,
+    "adults": 2,
+    "childrenUnder12": 0,
+    "childrenUnder16": 0,
+    "accommodation": "hotel",
+    "vehicle": "standard",
+    "cities": [
+      "cape-coast"
+    ],
+    "activityIds": [
+      "cape-castle",
+      "elmina-castle",
+      "kakum"
+    ],
+    "nights": 5,
+    "quote": {
+      "nights": 5,
+      "vehicleDays": 5,
+      "travelers": 2,
+      "accommodation": 450000,
+      "vehicle": 175000,
+      "activities": 130000,
+      "total": 755000,
+      "breakdown": [
+        {
+          "label": "Hôtel · 5 nuits",
+          "amount": 450000
+        },
+        {
+          "label": "Véhicule standard · 5 jours",
+          "amount": 175000
+        },
+        {
+          "label": "Cape Coast Castle (Cape Coast)",
+          "amount": 40000
+        },
+        {
+          "label": "Château d’Elmina (Cape Coast)",
+          "amount": 40000
+        },
+        {
+          "label": "Canopée de Kakum (Cape Coast)",
+          "amount": 50000
+        }
+      ]
+    },
+    "budget": "755000",
+    "suggestion": "bvkjvuouikb Testing",
+    "status": "pending",
+    "createdAt": "2026-08-24T22:24:59.961Z",
+    "updatedAt": "2026-08-24T22:24:59.961Z"
+  }
+]

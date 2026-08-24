@@ -2,6 +2,8 @@ import nodemailer from "nodemailer";
 import { agencyContact, formatPrice } from "@/data/home";
 import type { CustomTripRequest, Destination, Reservation } from "@/lib/types";
 
+const SEND_TIMEOUT_MS = 12_000;
+
 function getTransporter() {
   const user = process.env.SMTP_USER?.trim();
   const pass = process.env.SMTP_PASS?.trim();
@@ -16,8 +18,35 @@ function getTransporter() {
     port,
     secure,
     requireTLS: !secure,
+    connectionTimeout: SEND_TIMEOUT_MS,
+    greetingTimeout: SEND_TIMEOUT_MS,
+    socketTimeout: SEND_TIMEOUT_MS,
     auth: { user, pass },
   });
+}
+
+async function sendMail(options: nodemailer.SendMailOptions) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    throw new Error(
+      "Email non envoyé : configurez SMTP_HOST, SMTP_USER et SMTP_PASS."
+    );
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      transporter.sendMail(options),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error("Délai d’envoi email dépassé.")),
+          SEND_TIMEOUT_MS
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 export function isEmailConfigured() {
@@ -98,11 +127,6 @@ export async function sendContactMessageEmail(options: {
   phone?: string;
   message: string;
 }) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    throw new Error("Email non envoyé : SMTP non configuré.");
-  }
-
   const inbox = agencyInbox();
   const text = [
     "Nouveau message depuis le site MD Tours.",
@@ -134,7 +158,7 @@ export async function sendContactMessageEmail(options: {
     </div>
   `;
 
-  await transporter.sendMail({
+  await sendMail({
     from: fromAddress(),
     to: inbox,
     replyTo: options.email,
@@ -148,13 +172,6 @@ export async function sendTripInquiryEmail(
   reservation: Reservation,
   destination: Destination
 ) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    throw new Error(
-      "Email non envoyé : configurez SMTP_HOST, SMTP_USER et SMTP_PASS dans .env.local."
-    );
-  }
-
   const from = fromAddress();
   const program = itineraryText(destination);
   const text = [
@@ -191,7 +208,7 @@ export async function sendTripInquiryEmail(
     </div>
   `;
 
-  await transporter.sendMail({
+  await sendMail({
     from,
     to: reservation.email,
     cc: agencyInbox(),
@@ -205,13 +222,6 @@ export async function sendTripConfirmationEmail(
   reservation: Reservation,
   destination?: Destination
 ) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    throw new Error(
-      "Email non envoyé : configurez SMTP_HOST, SMTP_USER et SMTP_PASS dans .env.local."
-    );
-  }
-
   const departure = reservation.departureDate
     ? new Date(`${reservation.departureDate}T00:00:00`).toLocaleDateString("fr-FR")
     : "à confirmer";
@@ -253,7 +263,7 @@ export async function sendTripConfirmationEmail(
     </div>
   `;
 
-  await transporter.sendMail({
+  await sendMail({
     from,
     to: reservation.email,
     subject: `Votre voyage est confirmé — ${reservation.reference}`,
@@ -263,11 +273,6 @@ export async function sendTripConfirmationEmail(
 }
 
 export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    throw new Error("Email non envoyé : SMTP non configuré.");
-  }
-
   const from = fromAddress();
   const departure = new Date(`${trip.departureDate}T00:00:00`).toLocaleDateString("fr-FR");
   const back = new Date(`${trip.returnDate}T00:00:00`).toLocaleDateString("fr-FR");
@@ -319,7 +324,7 @@ export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
     </div>
   `;
 
-  await transporter.sendMail({
+  await sendMail({
     from,
     to: trip.email,
     cc: agencyInbox(),
@@ -347,11 +352,6 @@ export async function sendPasswordResetEmail(options: {
   name: string;
   resetUrl: string;
 }) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    throw new Error("Email non envoyé : SMTP non configuré.");
-  }
-
   const from = fromAddress();
   const safeName = escapeHtml(options.name);
   const text = [
@@ -384,7 +384,7 @@ export async function sendPasswordResetEmail(options: {
     </div>
   `;
 
-  await transporter.sendMail({
+  await sendMail({
     from,
     to: options.to,
     subject: "Réinitialiser votre mot de passe MD Tours",

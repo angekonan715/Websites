@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { sendTripConfirmationEmail } from "@/lib/email";
 import { getDestinations, getReservations, saveReservations } from "@/lib/store";
@@ -98,25 +98,26 @@ export async function PATCH(
 
   await saveReservations(reservations);
 
-  let emailSent = false;
-  let emailError = "";
   if (body.status === "payment_received") {
-    try {
-      const destinations = await getDestinations();
-      const destination = destinations.find(
-        (item) => item.id === reservation.destinationId
-      );
-      await sendTripConfirmationEmail(reservation, destination);
-      emailSent = true;
-      reservation.confirmationEmailSentAt = new Date().toISOString();
-      await saveReservations(reservations);
-    } catch (error) {
-      emailError =
-        error instanceof Error
-          ? error.message
-          : "Le paiement est confirmé, mais l'email n'a pas pu être envoyé.";
-    }
+    after(async () => {
+      try {
+        const destinations = await getDestinations();
+        const destination = destinations.find(
+          (item) => item.id === reservation.destinationId
+        );
+        await sendTripConfirmationEmail(reservation, destination);
+        reservation.confirmationEmailSentAt = new Date().toISOString();
+        const latest = await getReservations();
+        const stored = latest.find((item) => item.id === reservation.id);
+        if (stored) {
+          stored.confirmationEmailSentAt = reservation.confirmationEmailSentAt;
+          await saveReservations(latest);
+        }
+      } catch (error) {
+        console.error("Confirmation email failed:", error);
+      }
+    });
   }
 
-  return NextResponse.json({ reservation, emailSent, emailError });
+  return NextResponse.json({ reservation });
 }

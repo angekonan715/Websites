@@ -9,6 +9,11 @@ import { formatPrice } from "@/data/home";
 import { tripUnitPrice } from "@/lib/pricing";
 import type { Destination } from "@/lib/types";
 
+function authHref(destinationId: string, mode: "signup" | "signin") {
+  const next = `/voyages/${destinationId}#reserver`;
+  return `/connexion?mode=${mode}&next=${encodeURIComponent(next)}`;
+}
+
 export default function BookingForm({ destination }: { destination: Destination }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,7 +38,7 @@ export default function BookingForm({ destination }: { destination: Destination 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user) {
-      router.push(`/connexion?next=/voyages/${destination.id}`);
+      router.push(authHref(destination.id, "signup"));
       return;
     }
     if (!isValidInternationalPhone(phone)) {
@@ -43,10 +48,14 @@ export default function BookingForm({ destination }: { destination: Destination 
 
     setError("");
     setSaving(true);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 20_000);
     try {
       const response = await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        signal: controller.signal,
         body: JSON.stringify({
           destinationId: destination.id,
           name,
@@ -55,7 +64,7 @@ export default function BookingForm({ destination }: { destination: Destination 
           notes,
         }),
       });
-      const data = (await response.json()) as {
+      const data = (await response.json().catch(() => ({}))) as {
         error?: string;
         reservation?: { id: string };
       };
@@ -64,9 +73,14 @@ export default function BookingForm({ destination }: { destination: Destination 
         return;
       }
       router.push(`/reservations/${data.reservation.id}`);
-    } catch {
-      setError("Impossible d'enregistrer la réservation.");
+    } catch (cause) {
+      setError(
+        cause instanceof DOMException && cause.name === "AbortError"
+          ? "L’enregistrement prend trop de temps. Réessayez."
+          : "Impossible d'enregistrer la réservation."
+      );
     } finally {
+      window.clearTimeout(timer);
       setSaving(false);
     }
   }
@@ -94,66 +108,79 @@ export default function BookingForm({ destination }: { destination: Destination 
         </p>
       )}
 
-      {!soldOut && !loading && !user && (
-        <p className="mt-4 rounded-xl bg-gold/10 px-4 py-3 text-sm text-navy">
-          <a
-            href={`/connexion?next=/voyages/${destination.id}`}
-            className="font-semibold text-gold"
-          >
-            Connectez-vous
-          </a>{" "}
-          ou créez un compte pour finaliser la réservation.
-        </p>
-      )}
-
       {soldOut ? (
         <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
           Ce voyage n’a plus de places. L’agence peut en ajouter : les places
           réapparaîtront ici.
         </p>
-      ) : (
-      <div className="mt-5 space-y-4">
-        <label className="block text-sm font-medium text-navy">
-          Nom complet
-          <input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-          />
-        </label>
-        <div className="text-sm font-medium text-navy">
-          Téléphone (MD Tours vous contactera ici)
-          <PhoneInput id="booking-phone" required value={phone} onChange={setPhone} />
+      ) : loading ? (
+        <div className="mt-5 h-48 animate-pulse rounded-xl bg-gray-100" />
+      ) : !user ? (
+        <div className="mt-5 rounded-xl border border-gold/30 bg-gold/10 p-4">
+          <p className="font-semibold text-navy">Créez un compte pour vous inscrire</p>
+          <p className="mt-1 text-sm text-gray-600">
+            Un compte est obligatoire avant de réserver ce voyage. Vous pourrez
+            ensuite suivre votre dossier et recevoir les confirmations.
+          </p>
+          <a href={authHref(destination.id, "signup")} className="btn-gold mt-4 w-full">
+            Créer un compte
+          </a>
+          <p className="mt-3 text-center text-sm text-gray-600">
+            Déjà inscrit ?{" "}
+            <a
+              href={authHref(destination.id, "signin")}
+              className="font-semibold text-gold"
+            >
+              Connectez-vous
+            </a>
+          </p>
         </div>
-        <label className="block text-sm font-medium text-navy">
-          Voyageurs
-          <input
-            required
-            type="number"
-            min={1}
-            max={Math.min(20, remaining)}
-            value={travelers}
-            onChange={(e) => {
-              const value = Number(e.target.value) || 1;
-              setTravelers(Math.min(remaining, Math.max(1, value)));
-            }}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-          />
-          <span className="mt-1 block text-xs text-gray-500">
-            Maximum {Math.min(20, remaining)} place{Math.min(20, remaining) > 1 ? "s" : ""}
-          </span>
-        </label>
-        <label className="block text-sm font-medium text-navy">
-          Message (optionnel)
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-          />
-        </label>
-      </div>
+      ) : (
+        <div className="mt-5 space-y-4">
+          <p className="rounded-xl bg-cream px-3 py-2 text-xs text-gray-600">
+            Réservation pour <span className="font-semibold text-navy">{user.email}</span>
+          </p>
+          <label className="block text-sm font-medium text-navy">
+            Nom complet
+            <input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+            />
+          </label>
+          <div className="text-sm font-medium text-navy">
+            Téléphone (MD Tours vous contactera ici)
+            <PhoneInput id="booking-phone" required value={phone} onChange={setPhone} />
+          </div>
+          <label className="block text-sm font-medium text-navy">
+            Voyageurs
+            <input
+              required
+              type="number"
+              min={1}
+              max={Math.min(20, remaining)}
+              value={travelers}
+              onChange={(e) => {
+                const value = Number(e.target.value) || 1;
+                setTravelers(Math.min(remaining, Math.max(1, value)));
+              }}
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+            />
+            <span className="mt-1 block text-xs text-gray-500">
+              Maximum {Math.min(20, remaining)} place{Math.min(20, remaining) > 1 ? "s" : ""}
+            </span>
+          </label>
+          <label className="block text-sm font-medium text-navy">
+            Message (optionnel)
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+            />
+          </label>
+        </div>
       )}
 
       {error && (
@@ -162,7 +189,7 @@ export default function BookingForm({ destination }: { destination: Destination 
         </p>
       )}
 
-      {!soldOut && (
+      {!soldOut && user && (
         <button type="submit" disabled={saving || loading} className="btn-gold mt-5 w-full">
           {saving ? "Enregistrement..." : "Confirmer ma réservation"}
         </button>

@@ -4,11 +4,26 @@ import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
+function safeNext(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
+  return value;
+}
+
 export default function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refresh } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const nextPath = safeNext(searchParams.get("next"));
+  const fromTrip =
+    nextPath.startsWith("/voyages/") || nextPath.startsWith("/voyage-personnalise");
+  const requestedMode = searchParams.get("mode");
+  const [mode, setMode] = useState<"signin" | "signup">(
+    requestedMode === "signin"
+      ? "signin"
+      : requestedMode === "signup" || fromTrip
+        ? "signup"
+        : "signin"
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,19 +42,20 @@ export default function AuthForm() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify(
             mode === "signin" ? { email, password } : { name, email, password }
           ),
         }
       );
-      const data = (await response.json()) as { error?: string };
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
         setError(data.error ?? "Une erreur est survenue.");
         return;
       }
 
       await refresh();
-      router.push(searchParams.get("next") || "/");
+      router.push(nextPath);
       router.refresh();
     } catch {
       setError("Impossible de contacter le serveur.");
@@ -72,12 +88,16 @@ export default function AuthForm() {
       </div>
 
       <h1 className="text-2xl font-bold text-navy">
-        {mode === "signin" ? "Bon retour" : "Rejoignez MD Tours"}
+        {mode === "signin" ? "Bon retour" : fromTrip ? "Créez un compte pour réserver" : "Rejoignez MD Tours"}
       </h1>
       <p className="mt-1 text-sm text-gray-500">
         {mode === "signin"
-          ? "Connectez-vous pour gérer votre espace."
-          : "Créez un compte pour suivre vos voyages."}
+          ? fromTrip
+            ? "Connectez-vous pour finaliser votre inscription au voyage."
+            : "Connectez-vous pour gérer votre espace."
+          : fromTrip
+            ? "Un compte est nécessaire avant de vous inscrire à un voyage."
+            : "Créez un compte pour suivre vos voyages."}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">

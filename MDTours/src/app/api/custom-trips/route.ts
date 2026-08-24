@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import {
   createBookingReference,
@@ -154,16 +154,24 @@ export async function POST(request: Request) {
       updatedAt: now,
     };
 
-    try {
-      await sendCustomTripQuoteEmail(customTrip);
-      customTrip.quoteEmailSentAt = now;
-    } catch (error) {
-      console.error("Custom trip email failed:", error);
-    }
-
     const requests = await getCustomTrips();
     requests.push(customTrip);
     await saveCustomTrips(requests);
+
+    after(async () => {
+      try {
+        await sendCustomTripQuoteEmail(customTrip);
+        customTrip.quoteEmailSentAt = new Date().toISOString();
+        const latest = await getCustomTrips();
+        const stored = latest.find((item) => item.id === customTrip.id);
+        if (stored) {
+          stored.quoteEmailSentAt = customTrip.quoteEmailSentAt;
+          await saveCustomTrips(latest);
+        }
+      } catch (error) {
+        console.error("Custom trip email failed:", error);
+      }
+    });
 
     return NextResponse.json({ request: customTrip }, { status: 201 });
   } catch {
