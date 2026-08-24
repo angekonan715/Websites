@@ -3,9 +3,9 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   getHistoryTrips,
   saveHistoryTrips,
-  savePublicFile,
   slugify,
 } from "@/lib/store";
+import { saveProcessedImage, saveProcessedVideo } from "@/lib/media";
 import type { HistoryTrip } from "@/lib/types";
 
 export async function GET() {
@@ -50,13 +50,15 @@ export async function POST(request: Request) {
     const images: string[] = [];
     for (const [index, file] of files.entries()) {
       if (file instanceof File && file.size > 0 && file.type.startsWith("image/")) {
-        images.push(await savePublicFile(file, "images", `${id}-${index}`));
+        images.push(
+          await saveProcessedImage(file, "images", `${id}-${index}`, "wide")
+        );
       }
     }
 
     let video = "";
     if (videoFile instanceof File && videoFile.size > 0 && videoFile.type.startsWith("video/")) {
-      video = await savePublicFile(videoFile, "video", id);
+      video = await saveProcessedVideo(videoFile, id);
     }
 
     const trip: HistoryTrip = {

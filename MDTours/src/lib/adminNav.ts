@@ -10,7 +10,7 @@ export const adminCategories = [
     id: "voyages",
     group: "offre",
     label: "Voyages de groupe",
-    description: "Créer les séjours, voir les inscrits et gérer les promotions.",
+    description: "Créer les séjours : photos, lieu, programme jour par jour et emails.",
   },
   {
     id: "personnalise",
@@ -43,6 +43,12 @@ export const adminCategories = [
     description: "Générer un lien court à coller dans un post ou dans la bio.",
   },
   {
+    id: "accueil",
+    group: "contenu",
+    label: "Page d’accueil",
+    description: "Photo ou vidéo d’arrière-plan, recadrée pour le bandeau principal.",
+  },
+  {
     id: "a-propos",
     group: "contenu",
     label: "À propos",
@@ -59,6 +65,12 @@ export const adminCategories = [
     group: "contenu",
     label: "Témoignages",
     description: "Avis clients et liens d’invitation.",
+  },
+  {
+    id: "menus",
+    group: "contenu",
+    label: "Destinations",
+    description: "Pays, régions et lieux : photos et petites descriptions, distincts des voyages.",
   },
   {
     id: "mot-de-passe",

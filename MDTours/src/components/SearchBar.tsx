@@ -1,28 +1,21 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, MapPin, Minus, Plus, Search, Users } from "lucide-react";
-import { destinationOptions } from "@/data/home";
+import { MapPin, Minus, Plus, Search, Users } from "lucide-react";
 import type { Destination } from "@/lib/types";
 
 export default function SearchBar() {
   const router = useRouter();
   const [destination, setDestination] = useState("");
-  const [date, setDate] = useState("");
   const [voyageurs, setVoyageurs] = useState(1);
-
-  const [options, setOptions] = useState<string[]>(destinationOptions);
-  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const [options, setOptions] = useState<string[]>([]);
 
   useEffect(() => {
     fetch("/api/destinations")
       .then((response) => response.json())
       .then((data: { destinations?: Destination[] }) => {
-        const titles = (data.destinations ?? []).map((item) => item.title);
-        if (titles.length > 0) {
-          setOptions([...new Set([...titles, ...destinationOptions])]);
-        }
+        setOptions((data.destinations ?? []).map((item) => item.title));
       })
       .catch(() => undefined);
   }, []);
@@ -31,7 +24,6 @@ export default function SearchBar() {
     event.preventDefault();
     const params = new URLSearchParams();
     if (destination.trim()) params.set("destination", destination.trim());
-    if (date) params.set("date", date);
     params.set("voyageurs", String(voyageurs));
     router.push(`/?${params.toString()}#voyages`);
   }
@@ -42,7 +34,7 @@ export default function SearchBar() {
       onSubmit={handleSubmit}
       className="mx-auto w-full max-w-5xl"
     >
-      <div className="grid grid-cols-1 overflow-hidden rounded-2xl bg-white shadow-search sm:grid-cols-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.1fr)_minmax(0,0.9fr)_auto]">
+      <div className="grid grid-cols-1 overflow-hidden rounded-sm bg-white shadow-search sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)_auto]">
         <label className="flex cursor-text items-center gap-3 border-b border-gray-100 px-5 py-4 sm:border-b-0 sm:border-r lg:py-5">
           <MapPin className="h-5 w-5 shrink-0 text-gold" strokeWidth={2} />
           <span className="min-w-0 flex-1">
@@ -63,23 +55,6 @@ export default function SearchBar() {
                 <option key={option} value={option} />
               ))}
             </datalist>
-          </span>
-        </label>
-
-        <label className="flex cursor-text items-center gap-3 border-b border-gray-100 px-5 py-4 sm:border-b-0 sm:border-r lg:py-5">
-          <Calendar className="h-5 w-5 shrink-0 text-gold" strokeWidth={2} />
-          <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-              Date de départ
-            </span>
-            <input
-              type="date"
-              name="date"
-              min={today}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="mt-0.5 w-full min-w-0 bg-transparent text-sm font-medium text-navy outline-none"
-            />
           </span>
         </label>
 
@@ -126,7 +101,7 @@ export default function SearchBar() {
         <div className="flex items-stretch p-3 sm:p-2 lg:col-span-1">
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-gold-dark lg:min-w-[210px] lg:rounded-lg"
+            className="flex w-full items-center justify-center gap-2 rounded-sm bg-gold px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-gold-dark lg:min-w-[210px]"
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Rechercher un voyage</span>

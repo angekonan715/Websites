@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import PaymentInstructions from "@/components/PaymentInstructions";
 import { useAuth } from "@/components/AuthProvider";
 import { formatPrice, reservationStatusLabel } from "@/data/home";
+import { formatAdminDate } from "@/lib/csv";
 import type { Reservation } from "@/lib/types";
 
 export default function ReservationDetailPage() {
@@ -68,10 +69,10 @@ export default function ReservationDetailPage() {
                 </h1>
                 <p className="mt-2 text-sm text-gray-500">
                   {reservation.travelers}{" "}
-                  {reservation.travelers > 1 ? "voyageurs" : "voyageur"} · Départ le{" "}
-                  {new Date(`${reservation.departureDate}T00:00:00`).toLocaleDateString(
-                    "fr-FR"
-                  )}{" "}
+                  {reservation.travelers > 1 ? "voyageurs" : "voyageur"} ·{" "}
+                  {reservation.departureDate
+                    ? `Départ le ${formatAdminDate(reservation.departureDate)}`
+                    : "Départ à confirmer"}{" "}
                   · {formatPrice(reservation.totalPrice)} FCFA
                 </p>
                 <p className="mt-3 inline-flex rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-navy">

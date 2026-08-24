@@ -8,14 +8,14 @@ export default async function AboutPage() {
   const page = await getAboutPage();
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-cream">
       <Header variant="solid" />
       <PageHero kicker={page.kicker} title={page.title} subtitle={page.subtitle} />
       <article className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         {page.blocks.map((block) => {
           if (block.type === "heading") {
             return (
-              <h2 key={block.id} className="mt-10 text-2xl font-bold text-navy first:mt-0">
+              <h2 key={block.id} className="mt-10 font-editorial text-2xl font-semibold text-navy first:mt-0 sm:text-3xl">
                 {block.text}
               </h2>
             );

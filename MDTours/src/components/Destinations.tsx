@@ -12,7 +12,6 @@ export default function Destinations() {
   const searchParams = useSearchParams();
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const query = searchParams.get("destination")?.trim().toLowerCase() ?? "";
-  const date = searchParams.get("date");
   const voyageurs = searchParams.get("voyageurs");
 
   useEffect(() => {
@@ -39,30 +38,21 @@ export default function Destinations() {
   return (
     <section
       id="voyages"
-      className="bg-white px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8"
+      className="bg-cream px-4 pb-16 pt-16 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8"
     >
       <div id="destinations" className="mx-auto max-w-7xl">
         <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">
-              Destinations Populaires
-            </p>
-            <h2 className="mt-2 text-2xl font-bold text-navy sm:text-4xl">
+            <p className="section-kicker">Nos voyages</p>
+            <h2 className="section-title mt-3">
               Où souhaitez-vous partir ?
             </h2>
-            {(query || date || voyageurs) && (
+            {(query || voyageurs) && (
               <p className="mt-2 text-sm text-gray-500">
                 {query && <span>Recherche : {searchParams.get("destination")}</span>}
-                {date && (
-                  <span>
-                    {query ? " · " : ""}
-                    Départ le{" "}
-                    {new Date(`${date}T00:00:00`).toLocaleDateString("fr-FR")}
-                  </span>
-                )}
                 {voyageurs && (
                   <span>
-                    {query || date ? " · " : ""}
+                    {query ? " · " : ""}
                     {voyageurs}{" "}
                     {Number(voyageurs) > 1 ? "voyageurs" : "voyageur"}
                   </span>
@@ -72,7 +62,7 @@ export default function Destinations() {
           </div>
           <a
             href="/voyages/groupes"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy transition-colors hover:text-gold"
+            className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-navy transition-colors hover:text-gold"
           >
             Voir tous les voyages
             <ArrowUpRight className="h-4 w-4 text-gold" />
@@ -90,15 +80,12 @@ export default function Destinations() {
           {results.map((dest) => (
             <article
               key={dest.id}
-              className="group relative overflow-hidden rounded-xl shadow-card transition-transform hover:-translate-y-1 sm:rounded-2xl"
+              className="group relative overflow-hidden rounded-sm shadow-card transition-transform hover:-translate-y-1"
             >
               <a
                 href={
-                  date || voyageurs
-                    ? `/voyages/${dest.id}?${new URLSearchParams({
-                        ...(date ? { date } : {}),
-                        ...(voyageurs ? { voyageurs } : {}),
-                      }).toString()}`
+                  voyageurs
+                    ? `/voyages/${dest.id}?${new URLSearchParams({ voyageurs }).toString()}`
                     : `/voyages/${dest.id}`
                 }
                 className="block"
@@ -119,7 +106,7 @@ export default function Destinations() {
                 <PlacesBadge dest={dest} />
 
                 <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-4">
-                  <h3 className="text-sm font-bold leading-snug text-white sm:text-lg">{dest.title}</h3>
+                  <h3 className="font-editorial text-lg font-semibold leading-snug text-white sm:text-2xl">{dest.title}</h3>
                   <div className="mt-1 hidden items-center gap-1.5 text-xs text-white/80 sm:mt-1.5 sm:flex">
                     <Clock className="h-3.5 w-3.5" />
                     {dest.duration}

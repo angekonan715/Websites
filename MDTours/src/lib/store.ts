@@ -17,7 +17,11 @@ import type {
   Testimonial,
   TestimonyInvite,
   User,
+  PasswordReset,
+  MegaMenus,
+  HeroSettings,
 } from "./types";
+import { defaultMegaMenus, enrichMegaMenus } from "./megaMenus";
 
 const dataDir = path.join(process.cwd(), "data");
 const destinationsPath = path.join(dataDir, "destinations.json");
@@ -33,6 +37,9 @@ const aboutPath = path.join(dataDir, "about.json");
 const campaignsPath = path.join(dataDir, "campaigns.json");
 const clientNotesPath = path.join(dataDir, "client-notes.json");
 const shareLinksPath = path.join(dataDir, "share-links.json");
+const passwordResetsPath = path.join(dataDir, "password-resets.json");
+const megaMenusPath = path.join(dataDir, "mega-menus.json");
+const heroPath = path.join(dataDir, "hero.json");
 
 const defaultAbout: AboutPage = {
   kicker: "À propos",
@@ -212,6 +219,27 @@ export function createInviteToken() {
   return crypto.randomUUID().replace(/-/g, "");
 }
 
+export const defaultHeroSettings: HeroSettings = {
+  image: "/background/hero.png",
+  video: "",
+  alt: "Voyage MD Tours",
+};
+
+export async function getHeroSettings(): Promise<HeroSettings> {
+  const stored = await readJson<Partial<HeroSettings> | null>(heroPath, null);
+  return {
+    image: stored?.image?.trim() || defaultHeroSettings.image,
+    video: stored?.video?.trim() || "",
+    alt: stored?.alt?.trim() || defaultHeroSettings.alt,
+    sourceLabel: stored?.sourceLabel?.trim() || "",
+    updatedAt: stored?.updatedAt,
+  };
+}
+
+export async function saveHeroSettings(settings: HeroSettings) {
+  await writeJson(heroPath, settings);
+}
+
 export async function savePublicFile(
   file: File,
   folder: "images" | "video",
@@ -307,4 +335,34 @@ export async function getShareLinks(): Promise<ShareLink[]> {
 
 export async function saveShareLinks(items: ShareLink[]) {
   await writeJson(shareLinksPath, items);
+}
+
+export async function getPasswordResets(): Promise<PasswordReset[]> {
+  return readJson<PasswordReset[]>(passwordResetsPath, []);
+}
+
+export async function savePasswordResets(items: PasswordReset[]) {
+  await writeJson(passwordResetsPath, items);
+}
+
+export async function getStoredMegaMenus(): Promise<MegaMenus> {
+  const stored = await readJson<Partial<MegaMenus> | null>(megaMenusPath, null);
+  return {
+    destinations:
+      stored?.destinations && stored.destinations.length > 0
+        ? stored.destinations
+        : defaultMegaMenus.destinations,
+    voyages:
+      stored?.voyages && stored.voyages.length > 0
+        ? stored.voyages
+        : defaultMegaMenus.voyages,
+  };
+}
+
+export async function getMegaMenus(): Promise<MegaMenus> {
+  return enrichMegaMenus(await getStoredMegaMenus(), await getDestinations());
+}
+
+export async function saveMegaMenus(menus: MegaMenus) {
+  await writeJson(megaMenusPath, menus);
 }

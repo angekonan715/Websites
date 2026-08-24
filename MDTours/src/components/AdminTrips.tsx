@@ -7,7 +7,7 @@ import TripPrice from "@/components/TripPrice";
 import { formatPrice, reservationStatusLabel } from "@/data/home";
 import { formatAdminDate } from "@/lib/csv";
 import { clientKey } from "@/lib/records";
-import type { Destination, Reservation } from "@/lib/types";
+import type { Destination, Reservation, TripItineraryDay } from "@/lib/types";
 
 const emptyForm = {
   title: "",
@@ -17,11 +17,25 @@ const emptyForm = {
   rating: "4.8",
   reviews: "0",
   description: "",
+  location: "",
   capacity: "20",
   promotionEnabled: false,
   promotionLabel: "",
   promotionPrice: "",
 };
+
+type ItineraryDraft = TripItineraryDay & { file?: File | null };
+
+function emptyDay(day: number): ItineraryDraft {
+  return {
+    id: crypto.randomUUID(),
+    day,
+    title: "",
+    description: "",
+    image: "",
+    file: null,
+  };
+}
 
 export default function AdminTrips() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -30,6 +44,7 @@ export default function AdminTrips() {
   const [image, setImage] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [gallery, setGallery] = useState<File[]>([]);
+  const [itinerary, setItinerary] = useState<ItineraryDraft[]>([]);
   const [removeVideo, setRemoveVideo] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -76,6 +91,7 @@ export default function AdminTrips() {
     setImage(null);
     setVideo(null);
     setGallery([]);
+    setItinerary([]);
     setRemoveVideo(false);
     setError("");
     setMessage("");
@@ -91,6 +107,7 @@ export default function AdminTrips() {
       rating: String(dest.rating),
       reviews: String(dest.reviews),
       description: dest.description ?? "",
+      location: dest.location ?? "",
       capacity: String(dest.capacity ?? 20),
       promotionEnabled: Boolean(dest.promotionEnabled),
       promotionLabel: dest.promotionLabel ?? "",
@@ -99,6 +116,12 @@ export default function AdminTrips() {
     setImage(null);
     setVideo(null);
     setGallery([]);
+    setItinerary(
+      (dest.itinerary ?? []).map((day) => ({
+        ...day,
+        file: null,
+      }))
+    );
     setRemoveVideo(false);
     setError("");
     setMessage("");
@@ -120,6 +143,22 @@ export default function AdminTrips() {
       formData.set("rating", form.rating);
       formData.set("reviews", form.reviews);
       formData.set("description", form.description);
+      formData.set("location", form.location);
+      formData.set(
+        "itinerary",
+        JSON.stringify(
+          itinerary.map((day) => ({
+            id: day.id,
+            day: day.day,
+            title: day.title,
+            description: day.description,
+            image: day.image,
+          }))
+        )
+      );
+      itinerary.forEach((day, index) => {
+        if (day.file) formData.set(`itineraryImage-${index}`, day.file);
+      });
       formData.set("capacity", form.capacity);
       formData.set("promotionEnabled", form.promotionEnabled ? "1" : "0");
       formData.set("promotionLabel", form.promotionLabel);
@@ -209,8 +248,8 @@ export default function AdminTrips() {
             {editingId ? "Modifier le voyage" : "Ajouter un voyage"}
           </h3>
           <p className="mt-1 text-sm text-gray-500">
-            Photo de couverture, photos supplémentaires et vidéo pour le bloc
-            voyage.
+            Photo, lieu, programme jour par jour, et emails envoyés aux voyageurs
+            avec le détail du séjour.
           </p>
         </div>
         {editingId && (
@@ -344,6 +383,16 @@ export default function AdminTrips() {
           </>
         )}
         <label className="text-sm font-medium text-navy lg:col-span-2">
+          Description du lieu
+          <textarea
+            rows={3}
+            value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder="Où se déroule le séjour, ce que l’on y voit, l’ambiance du lieu…"
+            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+          />
+        </label>
+        <label className="text-sm font-medium text-navy lg:col-span-2">
           Description
           <textarea
             rows={3}
@@ -352,6 +401,111 @@ export default function AdminTrips() {
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
         </label>
+
+        <div className="lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium text-navy">Programme (Jour 1, Jour 2…)</p>
+            <button
+              type="button"
+              onClick={() =>
+                setItinerary((current) => [...current, emptyDay(current.length + 1)])
+              }
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-navy"
+            >
+              Ajouter un jour
+            </button>
+          </div>
+          {itinerary.length === 0 ? (
+            <p className="mt-2 text-sm text-gray-500">
+              Ajoutez le déroulé du voyage. Il s’affichera sur la fiche et dans
+              les emails envoyés aux clients.
+            </p>
+          ) : (
+            <div className="mt-3 space-y-3">
+              {itinerary.map((day, index) => (
+                <article
+                  key={day.id}
+                  className="rounded-xl border border-gray-100 bg-cream/40 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+                      Jour {index + 1}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItinerary((current) =>
+                          current
+                            .filter((item) => item.id !== day.id)
+                            .map((item, i) => ({ ...item, day: i + 1 }))
+                        )
+                      }
+                      className="text-xs font-semibold text-red-700"
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                  <input
+                    value={day.title}
+                    onChange={(e) =>
+                      setItinerary((current) =>
+                        current.map((item) =>
+                          item.id === day.id
+                            ? { ...item, title: e.target.value, day: index + 1 }
+                            : item
+                        )
+                      )
+                    }
+                    placeholder="Titre de la journée"
+                    className="mt-3 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+                  />
+                  <textarea
+                    rows={3}
+                    value={day.description}
+                    onChange={(e) =>
+                      setItinerary((current) =>
+                        current.map((item) =>
+                          item.id === day.id
+                            ? { ...item, description: e.target.value }
+                            : item
+                        )
+                      )
+                    }
+                    placeholder="Ce que l’on fait ce jour-là…"
+                    className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
+                  />
+                  <label className="mt-2 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-gray-300 px-3 py-3 text-sm text-gray-500 hover:border-gold">
+                    <Upload className="h-4 w-4 text-gold" />
+                    {day.file
+                      ? day.file.name
+                      : day.image
+                        ? "Remplacer la photo du jour"
+                        : "Photo du jour (optionnel)"}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={(e) =>
+                        setItinerary((current) =>
+                          current.map((item) =>
+                            item.id === day.id
+                              ? { ...item, file: e.target.files?.[0] ?? null }
+                              : item
+                          )
+                        )
+                      }
+                    />
+                  </label>
+                  {day.image && !day.file ? (
+                    <div className="relative mt-2 h-24 w-40 overflow-hidden rounded-lg">
+                      <Image src={day.image} alt="" fill className="object-cover" />
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
 
         <label className="text-sm font-medium text-navy">
           Photo de couverture {editingId ? "(optionnel)" : ""}

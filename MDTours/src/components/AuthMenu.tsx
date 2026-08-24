@@ -60,11 +60,11 @@ export default function AuthMenu({ light = false }: AuthMenuProps) {
             Mes réservations
           </a>
           <a
-            href="/voyage-personnalise/demandes"
+            href="/voyage-personnalise"
             className="flex items-center gap-2 px-3 py-2 text-sm text-navy hover:bg-gray-50"
           >
             <Compass className="h-4 w-4 text-gold" />
-            Voyages personnalisés
+            Voyage personnalisé
           </a>
           {user.role === "admin" && (
             <>

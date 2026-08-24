@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import PhoneInput, { isValidInternationalPhone } from "@/components/PhoneInput";
 import { placesLabel } from "@/lib/availability";
 import { formatPrice } from "@/data/home";
 import { tripUnitPrice } from "@/lib/pricing";
@@ -14,7 +15,6 @@ export default function BookingForm({ destination }: { destination: Destination 
   const { user, loading } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [departureDate, setDepartureDate] = useState(searchParams.get("date") ?? "");
   const remaining = destination.availablePlaces ?? destination.capacity;
   const requested = Number(searchParams.get("voyageurs")) || 1;
   const [travelers, setTravelers] = useState(
@@ -23,7 +23,6 @@ export default function BookingForm({ destination }: { destination: Destination 
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const total = tripUnitPrice(destination) * travelers;
   const soldOut = remaining <= 0;
 
@@ -37,6 +36,10 @@ export default function BookingForm({ destination }: { destination: Destination 
       router.push(`/connexion?next=/voyages/${destination.id}`);
       return;
     }
+    if (!isValidInternationalPhone(phone)) {
+      setError("Indiquez un numéro de téléphone valide, avec l’indicatif pays.");
+      return;
+    }
 
     setError("");
     setSaving(true);
@@ -48,7 +51,6 @@ export default function BookingForm({ destination }: { destination: Destination 
           destinationId: destination.id,
           name,
           phone,
-          departureDate,
           travelers,
           notes,
         }),
@@ -85,6 +87,12 @@ export default function BookingForm({ destination }: { destination: Destination 
           {travelers > 1 ? "voyageurs" : "voyageur"}
         </p>
       )}
+      {!soldOut && (
+        <p className="mt-2 text-sm text-gray-500">
+          Les dates du voyage groupé sont fixées par MD Tours. Un conseiller
+          vous confirmera le départ.
+        </p>
+      )}
 
       {!soldOut && !loading && !user && (
         <p className="mt-4 rounded-xl bg-gold/10 px-4 py-3 text-sm text-navy">
@@ -114,28 +122,10 @@ export default function BookingForm({ destination }: { destination: Destination 
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
         </label>
-        <label className="block text-sm font-medium text-navy">
+        <div className="text-sm font-medium text-navy">
           Téléphone (MD Tours vous contactera ici)
-          <input
-            required
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+225 05 56 63 37 66"
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-          />
-        </label>
-        <label className="block text-sm font-medium text-navy">
-          Date de départ
-          <input
-            required
-            type="date"
-            min={today}
-            value={departureDate}
-            onChange={(e) => setDepartureDate(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-          />
-        </label>
+          <PhoneInput id="booking-phone" required value={phone} onChange={setPhone} />
+        </div>
         <label className="block text-sm font-medium text-navy">
           Voyageurs
           <input

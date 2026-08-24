@@ -10,8 +10,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin")) {
     if (!session) {
       const url = request.nextUrl.clone();
+      const next = `${pathname}${request.nextUrl.search}`;
       url.pathname = "/connexion";
-      url.searchParams.set("next", "/admin");
+      url.search = "";
+      url.searchParams.set("next", next || "/admin");
       return NextResponse.redirect(url);
     }
     if (session.role !== "admin") {
@@ -31,6 +33,10 @@ export async function middleware(request: NextRequest) {
     url.pathname = "/connexion";
     url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(url);
+  }
+
+  if (pathname === "/voyage-personnalise/demandes") {
+    return NextResponse.redirect(new URL("/voyage-personnalise", request.url));
   }
 
   if (pathname.startsWith("/voyage-personnalise/") && !session) {

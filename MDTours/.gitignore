@@ -33,6 +33,7 @@ yarn-error.log*
 
 # local user accounts
 /data/users.json
+/data/password-resets.json
 
 # typescript
 *.tsbuildinfo

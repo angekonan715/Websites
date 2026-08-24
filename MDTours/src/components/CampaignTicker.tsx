@@ -34,26 +34,6 @@ export default function CampaignTicker() {
     };
   }, []);
 
-  useEffect(() => {
-    const nextExpiry = campaigns
-      .map((item) => Date.parse(item.expiresAt))
-      .filter((time) => !Number.isNaN(time) && time > Date.now())
-      .sort((a, b) => a - b)[0];
-    if (!nextExpiry) return;
-
-    const timer = window.setTimeout(() => {
-      setCampaigns((current) => liveCampaigns(current));
-      void fetch("/api/campaigns")
-        .then((response) => response.json())
-        .then((data: { campaigns?: Campaign[] }) => {
-          setCampaigns(liveCampaigns(data.campaigns ?? []));
-        })
-        .catch(() => undefined);
-    }, Math.max(250, nextExpiry - Date.now() + 250));
-
-    return () => window.clearTimeout(timer);
-  }, [campaigns]);
-
   if (campaigns.length === 0) return null;
 
   const loop = [...campaigns, ...campaigns, ...campaigns];

@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
+import PhoneInput, { isValidInternationalPhone } from "@/components/PhoneInput";
 import { formatPrice } from "@/data/home";
 import {
   activityPrice,
@@ -172,6 +173,10 @@ export default function CustomTripBuilder() {
     }
     if (!departureDate || !returnDate || !accommodation || !vehicle || cities.length === 0) {
       setError("Complétez les dates, l’hébergement, le véhicule et au moins une ville.");
+      return;
+    }
+    if (!isValidInternationalPhone(phone)) {
+      setError("Indiquez un numéro de téléphone valide, avec l’indicatif pays.");
       return;
     }
     setError("");
@@ -456,16 +461,10 @@ export default function CustomTripBuilder() {
                 className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
               />
             </label>
-            <label className="text-sm font-medium text-navy">
+            <div className="text-sm font-medium text-navy">
               Téléphone
-              <input
-                required
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
-              />
-            </label>
+              <PhoneInput id="custom-trip-phone" required value={phone} onChange={setPhone} />
+            </div>
             <label className="text-sm font-medium text-navy sm:col-span-2">
               Précision (optionnel)
               <textarea

@@ -151,7 +151,7 @@ export default function AdminShareLinks() {
               setTitle(e.target.value);
               if (!slugEdited) setSlug(normalizeShareSlug(e.target.value));
             }}
-            placeholder="Promo Accra Instagram"
+            placeholder="Promo Cape Coast Instagram"
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
         </label>

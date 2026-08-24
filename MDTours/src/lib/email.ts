@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { agencyContact, formatPrice } from "@/data/home";
-import type { CustomTripRequest, Reservation } from "@/lib/types";
+import type { CustomTripRequest, Destination, Reservation } from "@/lib/types";
 
 function getTransporter() {
   const host = process.env.SMTP_HOST;
@@ -20,7 +20,117 @@ export function isEmailConfigured() {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
-export async function sendTripConfirmationEmail(reservation: Reservation) {
+function itineraryText(destination?: Destination) {
+  if (!destination) return "";
+  const days = [...(destination.itinerary ?? [])].sort((a, b) => a.day - b.day);
+  if (!destination.location && days.length === 0) return "";
+  const lines = ["", "Programme du voyage"];
+  if (destination.location) {
+    lines.push("", destination.location);
+  }
+  for (const day of days) {
+    lines.push("", `Jour ${day.day}${day.title ? ` — ${day.title}` : ""}`);
+    if (day.description) lines.push(day.description);
+  }
+  return lines.join("\n");
+}
+
+function itineraryHtml(destination?: Destination) {
+  if (!destination) return "";
+  const days = [...(destination.itinerary ?? [])].sort((a, b) => a.day - b.day);
+  if (!destination.location && days.length === 0) return "";
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.voyagezmdtours.com").replace(
+    /\/$/,
+    ""
+  );
+  const dayBlocks = days
+    .map((day) => {
+      const src = day.image
+        ? day.image.startsWith("http")
+          ? day.image
+          : `${siteUrl}${day.image}`
+        : "";
+      const image = src
+        ? `<img src="${escapeHtml(src)}" alt="" style="width:100%;max-width:320px;height:140px;object-fit:cover;border-radius:8px;margin:0 0 8px" />`
+        : "";
+      return `<div style="margin:16px 0;padding:12px 0;border-top:1px solid #eee">
+        ${image}
+        <p style="margin:0 0 4px;color:#D99B15;font-size:12px;font-weight:bold;letter-spacing:1px">JOUR ${day.day}</p>
+        ${day.title ? `<p style="margin:0 0 6px;font-weight:bold">${escapeHtml(day.title)}</p>` : ""}
+        ${day.description ? `<p style="margin:0;color:#555;font-size:14px;line-height:1.5">${escapeHtml(day.description)}</p>` : ""}
+      </div>`;
+    })
+    .join("");
+  return `
+    <h2 style="font-size:18px;margin:28px 0 8px">Programme du séjour</h2>
+    ${destination.location ? `<p style="color:#555;line-height:1.5">${escapeHtml(destination.location)}</p>` : ""}
+    ${dayBlocks}
+  `;
+}
+
+export async function sendTripInquiryEmail(
+  reservation: Reservation,
+  destination: Destination
+) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    throw new Error(
+      "Email non envoyé : configurez SMTP_HOST, SMTP_USER et SMTP_PASS dans .env.local."
+    );
+  }
+
+  const from =
+    process.env.EMAIL_FROM ||
+    `MD Tours <${process.env.SMTP_USER}>`;
+  const program = itineraryText(destination);
+  const text = [
+    `Bonjour ${reservation.name},`,
+    "",
+    "MD Tours a bien reçu votre demande de réservation.",
+    "",
+    `Référence : ${reservation.reference}`,
+    `Voyage : ${reservation.destinationTitle}`,
+    `Voyageurs : ${reservation.travelers}`,
+    `Montant estimé : ${formatPrice(reservation.totalPrice)} FCFA`,
+    program,
+    "",
+    "Un conseiller vous contacte pour confirmer le séjour et le paiement.",
+    "",
+    `MD Tours — ${agencyContact.email} — ${agencyContact.phone}`,
+  ].join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1A1A2E">
+      <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
+      <h1 style="font-size:22px;margin:8px 0 16px">Votre demande de voyage</h1>
+      <p>Bonjour ${escapeHtml(reservation.name)},</p>
+      <p>Nous avons bien reçu votre demande de réservation. Voici le séjour concerné.</p>
+      <table style="width:100%;border-collapse:collapse;margin:20px 0">
+        <tr><td style="padding:8px 0;color:#666">Référence</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(reservation.reference)}</td></tr>
+        <tr><td style="padding:8px 0;color:#666">Voyage</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(reservation.destinationTitle)}</td></tr>
+        <tr><td style="padding:8px 0;color:#666">Voyageurs</td><td style="padding:8px 0;font-weight:bold">${reservation.travelers}</td></tr>
+        <tr><td style="padding:8px 0;color:#666">Montant estimé</td><td style="padding:8px 0;font-weight:bold">${formatPrice(reservation.totalPrice)} FCFA</td></tr>
+      </table>
+      ${itineraryHtml(destination)}
+      <p>Un conseiller MD Tours vous contacte pour confirmer le séjour et le paiement.</p>
+      <p style="font-size:13px;color:#666">MD Tours<br>${agencyContact.email}<br>${agencyContact.phone}</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from,
+    to: reservation.email,
+    cc: agencyContact.email,
+    subject: `Votre voyage MD Tours — ${reservation.reference}`,
+    text,
+    html,
+  });
+}
+
+export async function sendTripConfirmationEmail(
+  reservation: Reservation,
+  destination?: Destination
+) {
   const transporter = getTransporter();
   if (!transporter) {
     throw new Error(
@@ -45,6 +155,7 @@ export async function sendTripConfirmationEmail(reservation: Reservation) {
     `Date de départ : ${departure}`,
     `Voyageurs : ${reservation.travelers}`,
     `Montant : ${formatPrice(reservation.totalPrice)} FCFA`,
+    itineraryText(destination),
     "",
     "Nous vous recontactons pour les derniers détails pratiques.",
     "",
@@ -55,15 +166,16 @@ export async function sendTripConfirmationEmail(reservation: Reservation) {
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1A1A2E">
       <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
       <h1 style="font-size:22px;margin:8px 0 16px">Votre voyage est confirmé</h1>
-      <p>Bonjour ${reservation.name},</p>
+      <p>Bonjour ${escapeHtml(reservation.name)},</p>
       <p>Nous avons bien reçu votre paiement. <strong>Votre voyage est confirmé.</strong></p>
       <table style="width:100%;border-collapse:collapse;margin:20px 0">
-        <tr><td style="padding:8px 0;color:#666">Référence</td><td style="padding:8px 0;font-weight:bold">${reservation.reference}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Voyage</td><td style="padding:8px 0;font-weight:bold">${reservation.destinationTitle}</td></tr>
+        <tr><td style="padding:8px 0;color:#666">Référence</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(reservation.reference)}</td></tr>
+        <tr><td style="padding:8px 0;color:#666">Voyage</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(reservation.destinationTitle)}</td></tr>
         <tr><td style="padding:8px 0;color:#666">Départ</td><td style="padding:8px 0;font-weight:bold">${departure}</td></tr>
         <tr><td style="padding:8px 0;color:#666">Voyageurs</td><td style="padding:8px 0;font-weight:bold">${reservation.travelers}</td></tr>
         <tr><td style="padding:8px 0;color:#666">Montant</td><td style="padding:8px 0;font-weight:bold">${formatPrice(reservation.totalPrice)} FCFA</td></tr>
       </table>
+      ${itineraryHtml(destination)}
       <p>Nous vous recontactons pour les derniers détails pratiques.</p>
       <p style="font-size:13px;color:#666">MD Tours<br>${agencyContact.email}<br>${agencyContact.phone}</p>
     </div>
@@ -140,6 +252,71 @@ export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
     from,
     to: trip.email,
     subject: `Votre devis MD Tours — ${trip.reference}`,
+    text,
+    html,
+  });
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => {
+    const map: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return map[character] ?? character;
+  });
+}
+
+export async function sendPasswordResetEmail(options: {
+  to: string;
+  name: string;
+  resetUrl: string;
+}) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    throw new Error("Email non envoyé : SMTP non configuré.");
+  }
+
+  const from =
+    process.env.EMAIL_FROM || `MD Tours <${process.env.SMTP_USER}>`;
+  const safeName = escapeHtml(options.name);
+  const text = [
+    `Bonjour ${options.name},`,
+    "",
+    "Vous avez demandé à réinitialiser le mot de passe de votre compte MD Tours.",
+    "",
+    "Ouvrez ce lien pour choisir un nouveau mot de passe (valable 1 heure) :",
+    options.resetUrl,
+    "",
+    "Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.",
+    "",
+    `MD Tours — ${agencyContact.email} — ${agencyContact.phone}`,
+  ].join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1A1A2E">
+      <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
+      <h1 style="font-size:22px;margin:8px 0 16px">Réinitialiser votre mot de passe</h1>
+      <p>Bonjour ${safeName},</p>
+      <p>Vous avez demandé à réinitialiser le mot de passe de votre compte MD Tours.</p>
+      <p style="margin:24px 0">
+        <a href="${options.resetUrl}" style="display:inline-block;background:#D99B15;color:#fff;text-decoration:none;font-weight:bold;padding:12px 18px;border-radius:8px">
+          Choisir un nouveau mot de passe
+        </a>
+      </p>
+      <p style="font-size:13px;color:#666">Ce lien expire dans 1 heure. Si le bouton ne fonctionne pas, copiez cette adresse :<br>${escapeHtml(options.resetUrl)}</p>
+      <p style="font-size:13px;color:#666">Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.</p>
+      <p style="font-size:13px;color:#666">MD Tours<br>${agencyContact.email}<br>${agencyContact.phone}</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from,
+    to: options.to,
+    subject: "Réinitialiser votre mot de passe MD Tours",
     text,
     html,
   });

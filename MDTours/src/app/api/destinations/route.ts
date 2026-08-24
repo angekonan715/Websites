@@ -4,10 +4,10 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   getDestinations,
   saveDestinations,
-  savePublicFile,
   slugify,
 } from "@/lib/store";
-import type { Destination } from "@/lib/types";
+import { saveProcessedImage, saveProcessedVideo } from "@/lib/media";
+import type { Destination, TripItineraryDay } from "@/lib/types";
 
 const imageTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
 const videoTypes = ["video/mp4", "video/webm"];
@@ -21,11 +21,56 @@ function readTripFields(formData: FormData) {
     rating: Number(formData.get("rating") || 4.8),
     reviews: Number(formData.get("reviews") || 0),
     description: String(formData.get("description") ?? "").trim(),
+    location: String(formData.get("location") ?? "").trim(),
     capacity: Number(formData.get("capacity") || DEFAULT_CAPACITY),
     promotionEnabled: String(formData.get("promotionEnabled") ?? "") === "1",
     promotionLabel: String(formData.get("promotionLabel") ?? "").trim(),
     promotionPrice: Number(formData.get("promotionPrice") || 0),
   };
+}
+
+function parseItinerary(formData: FormData): TripItineraryDay[] {
+  try {
+    const parsed = JSON.parse(String(formData.get("itinerary") ?? "[]")) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item, index) => {
+        const day = item as Partial<TripItineraryDay>;
+        return {
+          id: String(day.id ?? crypto.randomUUID()),
+          day: Number(day.day) || index + 1,
+          title: String(day.title ?? "").trim(),
+          description: String(day.description ?? "").trim(),
+          image: String(day.image ?? "").trim() || undefined,
+        };
+      })
+      .filter((day) => day.title || day.description || day.image);
+  } catch {
+    return [];
+  }
+}
+
+async function withItineraryImages(
+  formData: FormData,
+  days: TripItineraryDay[],
+  tripId: string
+) {
+  const next = [...days];
+  for (let index = 0; index < next.length; index += 1) {
+    const file = formData.get(`itineraryImage-${index}`);
+    if (isImageFile(file)) {
+      next[index] = {
+        ...next[index],
+        image: await saveProcessedImage(
+          file,
+          "images",
+          `${tripId}-jour-${next[index].day}-${Date.now()}`,
+          "wide"
+        ),
+      };
+    }
+  }
+  return next;
 }
 
 function isImageFile(value: FormDataEntryValue | null): value is File {
@@ -90,13 +135,16 @@ export async function POST(request: Request) {
       id = `${id}-${Date.now()}`;
     }
 
-    const image = await savePublicFile(imageFile, "images", id);
+    const image = await saveProcessedImage(imageFile, "images", id, "card");
     const gallery: string[] = [];
     for (const [index, file] of galleryFiles.entries()) {
       if (isImageFile(file)) {
-        gallery.push(await savePublicFile(file, "images", `${id}-gallery-${index}-${Date.now()}`));
+        gallery.push(
+          await saveProcessedImage(file, "images", `${id}-gallery-${index}-${Date.now()}`, "wide")
+        );
       }
     }
+    const itinerary = await withItineraryImages(formData, parseItinerary(formData), id);
 
     const destination: Destination = {
       id,
@@ -107,6 +155,8 @@ export async function POST(request: Request) {
       rating: Math.min(5, Math.max(0, fields.rating)),
       reviews: Math.max(0, fields.reviews),
       description: fields.description,
+      location: fields.location,
+      itinerary,
       capacity: Math.floor(fields.capacity),
       promotionEnabled: fields.promotionEnabled,
       promotionLabel: fields.promotionLabel,
@@ -114,7 +164,7 @@ export async function POST(request: Request) {
       image,
       gallery,
       video: isVideoFile(videoFile)
-        ? await savePublicFile(videoFile, "video", id)
+        ? await saveProcessedVideo(videoFile, id)
         : "",
     };
 
@@ -182,6 +232,12 @@ export async function PATCH(request: Request) {
     destination.rating = Math.min(5, Math.max(0, fields.rating));
     destination.reviews = Math.max(0, fields.reviews);
     destination.description = fields.description;
+    destination.location = fields.location;
+    destination.itinerary = await withItineraryImages(
+      formData,
+      parseItinerary(formData),
+      id
+    );
     destination.capacity = Math.floor(fields.capacity);
     destination.promotionEnabled = fields.promotionEnabled;
     destination.promotionLabel = fields.promotionLabel;
@@ -191,12 +247,17 @@ export async function PATCH(request: Request) {
 
     const imageFile = formData.get("image");
     if (isImageFile(imageFile)) {
-      destination.image = await savePublicFile(imageFile, "images", `${id}-${Date.now()}`);
+      destination.image = await saveProcessedImage(
+        imageFile,
+        "images",
+        `${id}-${Date.now()}`,
+        "card"
+      );
     }
 
     const videoFile = formData.get("video");
     if (isVideoFile(videoFile)) {
-      destination.video = await savePublicFile(videoFile, "video", `${id}-${Date.now()}`);
+      destination.video = await saveProcessedVideo(videoFile, `${id}-${Date.now()}`);
     }
     if (String(formData.get("removeVideo") ?? "") === "1") {
       destination.video = "";
@@ -207,7 +268,12 @@ export async function PATCH(request: Request) {
     for (const [index, file] of galleryFiles.entries()) {
       if (isImageFile(file)) {
         gallery.push(
-          await savePublicFile(file, "images", `${id}-gallery-${Date.now()}-${index}`)
+          await saveProcessedImage(
+            file,
+            "images",
+            `${id}-gallery-${Date.now()}-${index}`,
+            "wide"
+          )
         );
       }
     }

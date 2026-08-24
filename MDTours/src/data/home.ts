@@ -11,18 +11,6 @@ export const heroMedia = {
   video: "",
 };
 
-export const destinationOptions = [
-  "Accra",
-  "Cape Coast",
-  "Kwame Nkrumah",
-  "Akwaba",
-  "Boti Falls",
-  "Mole National Park",
-  "Beach Resort",
-  "Lomé",
-  "Cotonou",
-];
-
 export type NavLink = {
   label: string;
   href: string;
@@ -37,10 +25,6 @@ export const navLinks: NavLink[] = [
   {
     label: "Nos Voyages",
     href: "/voyages",
-    children: [
-      { label: "Voyage groupé", href: "/voyages/groupes" },
-      { label: "Voyage personnalisé", href: "/voyage-personnalise" },
-    ],
   },
   { label: "Destinations", href: "/destinations" },
   { label: "À propos", href: "/a-propos" },
@@ -50,29 +34,29 @@ export const navLinks: NavLink[] = [
 
 export const trustBadges = [
   {
-    icon: "shield",
-    title: "Voyages organisés",
-    description: "On s'occupe de tout pour vous.",
+    icon: "users",
+    title: "Petits groupes",
+    description: "Des séjours à taille humaine, pour vraiment rencontrer l’Afrique.",
   },
   {
-    icon: "tag",
-    title: "Meilleurs prix",
-    description: "Tarifs compétitifs et transparents.",
+    icon: "shield",
+    title: "Hébergements choisis",
+    description: "Hôtels et lodges sélectionnés pour le confort et le caractère.",
   },
   {
     icon: "headset",
-    title: "Assistance 24/7",
-    description: "Nous sommes là avant, pendant et après le voyage.",
+    title: "Guides de confiance",
+    description: "Un accompagnement humain avant, pendant et après le voyage.",
   },
   {
-    icon: "users",
-    title: "Expériences uniques",
-    description: "Des activités exclusives et inoubliables.",
+    icon: "tag",
+    title: "Tarif transparent",
+    description: "Le prix annoncé est le prix : pas de frais cachés.",
   },
   {
     icon: "shield-check",
-    title: "Sécurité garantie",
-    description: "Votre sécurité est notre priorité absolue.",
+    title: "Sérénité",
+    description: "Itinéraires préparés avec soin, sécurité et suivi inclus.",
   },
 ];
 

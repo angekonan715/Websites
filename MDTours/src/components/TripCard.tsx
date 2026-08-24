@@ -8,7 +8,7 @@ export default function TripCard({ dest }: { dest: Destination }) {
   return (
     <a
       href={`/voyages/${dest.id}`}
-      className="group relative overflow-hidden rounded-xl shadow-card transition-transform hover:-translate-y-1 sm:rounded-2xl"
+      className="group relative overflow-hidden rounded-sm shadow-card transition-transform hover:-translate-y-1"
     >
       <div className="relative aspect-[16/10] w-full sm:aspect-[4/3] xl:aspect-[4/5]">
         <Image
@@ -24,7 +24,7 @@ export default function TripCard({ dest }: { dest: Destination }) {
         </span>
         <PlacesBadge dest={dest} />
         <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-4">
-          <h3 className="text-sm font-bold leading-snug text-white sm:text-lg">{dest.title}</h3>
+          <h3 className="font-editorial text-lg font-semibold leading-snug text-white sm:text-2xl">{dest.title}</h3>
           <div className="mt-1 hidden items-center gap-1.5 text-xs text-white/80 sm:mt-1.5 sm:flex">
             <Clock className="h-3.5 w-3.5" />
             {dest.duration}

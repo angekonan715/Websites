@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ["sharp", "ffmpeg-static"],
   async redirects() {
     return [
       { source: "/blog", destination: "/", permanent: true },

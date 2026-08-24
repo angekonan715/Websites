@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "173c72aa-2ff7-4cc7-a011-526a0dd08a04",
+    "name": "Vaneca",
+    "email": "angekk419@gmail.com",
+    "phone": "8014192099",
+    "message": "Je veux voyager. Svp contactez moi pour un deal avec mon entreprise",
+    "createdAt": "2026-08-24T18:52:17.966Z"
+  },
+  {
+    "id": "c714fb9c-5d93-4e39-854a-8b57fb28b3f6",
+    "name": "Ange",
+    "email": "angekk419@gmail.com",
+    "phone": "",
+    "message": "Bonjour MDTours. Je veux voyager",
+    "createdAt": "2026-08-24T20:10:51.897Z"
+  }
+]

@@ -10,13 +10,13 @@
   }
 
   body {
-    @apply bg-white text-navy antialiased;
+    background-color: #f4efe6;
+    @apply text-navy antialiased;
   }
 
   img,
   video {
     max-width: 100%;
-    height: auto;
   }
 
   input,
@@ -37,12 +37,29 @@
 }
 
 @layer components {
+  .font-editorial {
+    font-family: var(--font-cormorant), Georgia, serif;
+  }
+
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-dark sm:px-6;
+    @apply inline-flex items-center justify-center gap-2 rounded-sm bg-gold px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-gold-dark sm:px-7;
   }
 
   .btn-outline-white {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border-2 border-white bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 sm:px-6;
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-white bg-transparent px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white hover:text-navy sm:px-7;
+  }
+
+  .btn-outline-navy {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-navy/25 bg-transparent px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-navy transition-colors hover:border-navy hover:bg-navy hover:text-white sm:px-7;
+  }
+
+  .section-kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.28em] text-gold;
+  }
+
+  .section-title {
+    font-family: var(--font-cormorant), Georgia, serif;
+    @apply text-3xl font-semibold leading-tight text-navy sm:text-4xl lg:text-[2.75rem];
   }
 }
 

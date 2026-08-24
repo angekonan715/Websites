@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { useAuth } from "@/components/AuthProvider";
 import { formatPrice, reservationStatusLabel } from "@/data/home";
+import { formatAdminDate } from "@/lib/csv";
 import type { Reservation } from "@/lib/types";
 
 export default function ReservationsPage() {
@@ -51,7 +52,9 @@ export default function ReservationsPage() {
                   <h2 className="mt-1 font-semibold text-navy">{item.destinationTitle}</h2>
                   <p className="text-sm text-gray-500">
                     {formatPrice(item.totalPrice)} FCFA ·{" "}
-                    {new Date(`${item.departureDate}T00:00:00`).toLocaleDateString("fr-FR")}
+                    {item.departureDate
+                      ? formatAdminDate(item.departureDate)
+                      : "Départ à confirmer"}
                   </p>
                 </div>
                 <span className="rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-navy">

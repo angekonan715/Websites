@@ -1,0 +1,66 @@
+{
+  "destinations": [
+    {
+      "id": "ghana",
+      "label": "Ghana",
+      "href": "/destinations/ghana",
+      "image": "/images/cape-coast.png",
+      "tagline": "Côtes, savane, héritage et capitales",
+      "destinations": [
+        {
+          "id": "cape-coast",
+          "label": "Cape Coast",
+          "href": "/destinations/ghana/cape-coast",
+          "image": "/images/cape-coast.png",
+          "description": "Ville historique de la côte ghanéenne, entre forts, océan et mémoire."
+        },
+        {
+          "id": "boti-falls",
+          "label": "Boti Falls",
+          "href": "/destinations/ghana/boti-falls",
+          "image": "/images/boti-waterfall.png",
+          "description": "Chutes d’eau et forêt de l’est du Ghana, pour un moment plus nature."
+        },
+        {
+          "id": "mole",
+          "label": "Mole",
+          "href": "/destinations/ghana/mole",
+          "image": "/images/mole-national-park.png",
+          "description": "Parc de savane au nord du Ghana, éléphants et grands espaces."
+        },
+        {
+          "id": "cote",
+          "label": "Côte atlantique",
+          "href": "/destinations/ghana/cote",
+          "image": "/images/beach.png",
+          "description": "Plages et lumière de l’Atlantique, pour se poser après la route."
+        }
+      ]
+    }
+  ],
+  "voyages": [
+    {
+      "id": "groupes",
+      "label": "Voyage groupé",
+      "href": "/voyages/groupes",
+      "image": "/images/cape-coast.png",
+      "tagline": "Tous les séjours en petit groupe, prêts à réserver",
+      "destinations": []
+    },
+    {
+      "id": "personnalise",
+      "label": "Voyage personnalisé",
+      "href": "/voyage-personnalise",
+      "image": "/images/beach.png",
+      "tagline": "Dates, hébergement, véhicule et activités à composer",
+      "destinations": [
+        {
+          "id": "creer",
+          "label": "Créer un voyage",
+          "href": "/voyage-personnalise",
+          "image": "/images/beach.png"
+        }
+      ]
+    }
+  ]
+}

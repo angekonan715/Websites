@@ -102,7 +102,11 @@ export async function PATCH(
   let emailError = "";
   if (body.status === "payment_received") {
     try {
-      await sendTripConfirmationEmail(reservation);
+      const destinations = await getDestinations();
+      const destination = destinations.find(
+        (item) => item.id === reservation.destinationId
+      );
+      await sendTripConfirmationEmail(reservation, destination);
       emailSent = true;
       reservation.confirmationEmailSentAt = new Date().toISOString();
       await saveReservations(reservations);

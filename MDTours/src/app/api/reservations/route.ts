@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { sendTripInquiryEmail } from "@/lib/email";
 import { tripUnitPrice } from "@/lib/pricing";
 import {
   createBookingReference,
@@ -49,9 +50,9 @@ export async function POST(request: Request) {
     const notes = body.notes?.trim() ?? "";
     const name = body.name?.trim() || user.name;
 
-    if (!destinationId || !phone || !departureDate) {
+    if (!destinationId || !phone) {
       return NextResponse.json(
-        { error: "Téléphone et date de départ sont requis." },
+        { error: "Le téléphone est requis." },
         { status: 400 }
       );
     }
@@ -113,6 +114,12 @@ export async function POST(request: Request) {
     const reservations = await getReservations();
     reservations.push(reservation);
     await saveReservations(reservations);
+
+    try {
+      await sendTripInquiryEmail(reservation, destination);
+    } catch {
+      // La réservation est enregistrée même si l’email n’est pas configuré.
+    }
 
     return NextResponse.json({ reservation }, { status: 201 });
   } catch {

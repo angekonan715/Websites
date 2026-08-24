@@ -57,6 +57,16 @@ export function persistDestination(destination: Destination): Destination {
     video: destination.video,
     gallery: destination.gallery,
     description: destination.description,
+    location: destination.location?.trim() || undefined,
+    itinerary: (destination.itinerary ?? [])
+      .map((day, index) => ({
+        id: day.id || `day-${index + 1}`,
+        day: Number(day.day) || index + 1,
+        title: String(day.title ?? "").trim(),
+        description: String(day.description ?? "").trim(),
+        image: day.image?.trim() || undefined,
+      }))
+      .filter((day) => day.title || day.description || day.image),
     capacity: destinationCapacity(destination),
     promotionEnabled: Boolean(destination.promotionEnabled),
     promotionLabel: destination.promotionLabel,

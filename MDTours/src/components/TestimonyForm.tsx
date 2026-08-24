@@ -123,7 +123,7 @@ export default function NewTestimonialForm() {
                 required
                 value={tripTitle}
                 onChange={(e) => setTripTitle(e.target.value)}
-                placeholder="Accra City Escape"
+            placeholder="Cape Coast Heritage"
                 className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
               />
             </label>

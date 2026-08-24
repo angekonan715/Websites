@@ -106,7 +106,7 @@ export default function AdminCampaigns() {
             minLength={4}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Promo été : -15 % sur Accra City Escape jusqu’au 30 septembre"
+            placeholder="Promo été : -15 % sur Cape Coast Heritage jusqu’au 30 septembre"
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gold"
           />
         </label>

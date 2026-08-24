@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import BookingForm from "@/components/BookingForm";
 import PlacesBadge from "@/components/PlacesBadge";
 import TripPrice from "@/components/TripPrice";
+import { agencyContact } from "@/data/home";
 import { getDestinations } from "@/lib/store";
 
 export default async function VoyagePage({
@@ -18,6 +19,7 @@ export default async function VoyagePage({
   const destination = destinations.find((item) => item.id === id);
   if (!destination) notFound();
   const gallery = destination.gallery ?? [];
+  const itinerary = [...(destination.itinerary ?? [])].sort((a, b) => a.day - b.day);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -85,6 +87,71 @@ export default async function VoyagePage({
             {destination.description ||
               "Réservez ce séjour. Après validation, MD Tours vous contacte pour convenir du paiement de façon sécurisée, puis confirme votre rendez-vous."}
           </p>
+
+          {(destination.location || itinerary.length > 0) && (
+            <section className="mt-10 border-t border-gray-100 pt-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                Programme
+              </p>
+              <h2 className="mt-2 font-editorial text-2xl font-semibold text-navy sm:text-3xl">
+                Le déroulé du séjour
+              </h2>
+              {destination.location ? (
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-600">
+                  {destination.location}
+                </p>
+              ) : null}
+              {itinerary.length > 0 ? (
+                <ol className="mt-6 space-y-6">
+                  {itinerary.map((day) => (
+                    <li
+                      key={day.id}
+                      className="overflow-hidden rounded-xl bg-white shadow-card sm:grid sm:grid-cols-[11rem_minmax(0,1fr)]"
+                    >
+                      {day.image ? (
+                        <div className="relative aspect-[16/10] sm:aspect-auto sm:min-h-[8.5rem]">
+                          <Image
+                            src={day.image}
+                            alt={day.title || `Jour ${day.day}`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 100vw, 11rem"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center bg-cream px-4 py-4 sm:px-5">
+                          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+                            Jour {day.day}
+                          </span>
+                        </div>
+                      )}
+                      <div className="p-4 sm:p-5">
+                        {day.image ? (
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+                            Jour {day.day}
+                          </p>
+                        ) : null}
+                        {day.title ? (
+                          <h3 className="mt-1 font-semibold text-navy">{day.title}</h3>
+                        ) : null}
+                        {day.description ? (
+                          <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                            {day.description}
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+              <p className="mt-6 text-sm text-gray-500">
+                Une question sur ce programme ?{" "}
+                <a href={`mailto:${agencyContact.email}`} className="font-semibold text-gold">
+                  {agencyContact.email}
+                </a>
+              </p>
+            </section>
+          )}
         </article>
 
         <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white" />}>

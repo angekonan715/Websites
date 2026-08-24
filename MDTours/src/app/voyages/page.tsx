@@ -8,7 +8,7 @@ const options = [
     kicker: "Offres MD Tours",
     title: "Voyage groupé",
     description:
-      "Circuits déjà organisés par l’agence : dates, programme et tarif fixés. Choisissez parmi les voyages disponibles.",
+      "Circuits déjà organisés par l’agence : programme et tarif fixés. Choisissez parmi les voyages disponibles.",
     points: ["Départs collectifs", "Itinéraires prêts", "Accompagnement MD Tours"],
     icon: MapPinned,
   },

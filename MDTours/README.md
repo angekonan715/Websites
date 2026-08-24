@@ -20,6 +20,8 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
 Après connexion admin, ouvrez [http://localhost:3000/admin](http://localhost:3000/admin) pour publier un nouveau voyage. Le mot de passe se change dans **Admin → Mot de passe**.
 
+Mot de passe oublié : [Connexion → Mot de passe oublié](http://localhost:3000/connexion/mot-de-passe-oublie). Un email est envoyé si `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` sont configurés.
+
 ## Ajouter des images et des vidéos
 
 Déposez vos fichiers dans `public/` :

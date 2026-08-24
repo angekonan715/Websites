@@ -1,3 +1,11 @@
+export interface TripItineraryDay {
+  id: string;
+  day: number;
+  title: string;
+  description: string;
+  image?: string;
+}
+
 export interface Destination {
   id: string;
   country: string;
@@ -10,12 +18,46 @@ export interface Destination {
   video?: string;
   gallery?: string[];
   description?: string;
+  location?: string;
+  itinerary?: TripItineraryDay[];
   capacity: number;
   bookedPlaces?: number;
   availablePlaces?: number;
   promotionEnabled?: boolean;
   promotionLabel?: string;
   promotionPrice?: number;
+}
+
+export interface MegaMenuLink {
+  id: string;
+  label: string;
+  href: string;
+  image?: string;
+  description?: string;
+}
+
+export interface MegaMenuRegion {
+  id: string;
+  label: string;
+  href: string;
+  image: string;
+  tagline: string;
+  destinations: MegaMenuLink[];
+}
+
+export type MegaMenuKey = "destinations" | "voyages";
+
+export interface MegaMenus {
+  destinations: MegaMenuRegion[];
+  voyages: MegaMenuRegion[];
+}
+
+export interface HeroSettings {
+  image: string;
+  video: string;
+  alt: string;
+  sourceLabel?: string;
+  updatedAt?: string;
 }
 
 export type AboutBlockType = "heading" | "paragraph" | "image";
@@ -68,6 +110,14 @@ export interface User {
   email: string;
   passwordHash: string;
   role: UserRole;
+  createdAt: string;
+}
+
+export interface PasswordReset {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  expiresAt: string;
   createdAt: string;
 }
 

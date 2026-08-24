@@ -11,9 +11,11 @@ import {
   KeyRound,
   LayoutGrid,
   Link2,
+  MapPin,
   Megaphone,
   Menu,
   MessageSquareQuote,
+  MonitorPlay,
   Plane,
   Route,
   Users,
@@ -24,7 +26,9 @@ import AdminAbout from "@/components/AdminAbout";
 import AdminCampaigns from "@/components/AdminCampaigns";
 import AdminClients from "@/components/AdminClients";
 import AdminCustomTrips from "@/components/AdminCustomTrips";
+import AdminHero from "@/components/AdminHero";
 import AdminHistory from "@/components/AdminHistory";
+import AdminMegaMenus from "@/components/AdminMegaMenus";
 import AdminPassword from "@/components/AdminPassword";
 import AdminPersonalizedCatalog from "@/components/AdminPersonalizedCatalog";
 import AdminReservations from "@/components/AdminReservations";
@@ -45,9 +49,11 @@ const icons = {
   clients: Users,
   campagnes: Megaphone,
   liens: Link2,
+  accueil: MonitorPlay,
   "a-propos": BookOpen,
   historique: Clock3,
   temoignages: MessageSquareQuote,
+  menus: MapPin,
   "mot-de-passe": KeyRound,
 };
 
@@ -364,12 +370,16 @@ function renderCategory(id: AdminCategoryId) {
       return <AdminCampaigns />;
     case "liens":
       return <AdminShareLinks />;
+    case "accueil":
+      return <AdminHero />;
     case "a-propos":
       return <AdminAbout />;
     case "historique":
       return <AdminHistory />;
     case "temoignages":
       return <AdminTestimonials />;
+    case "menus":
+      return <AdminMegaMenus />;
     case "mot-de-passe":
       return <AdminPassword />;
   }

@@ -114,6 +114,17 @@ export default function AuthForm() {
           />
         </label>
 
+        {mode === "signin" ? (
+          <p className="-mt-2 text-right text-sm">
+            <a
+              href="/connexion/mot-de-passe-oublie"
+              className="font-semibold text-gold hover:text-gold-light"
+            >
+              Mot de passe oublié ?
+            </a>
+          </p>
+        ) : null}
+
         {mode === "signup" && (
           <label className="flex items-start gap-3 text-sm text-navy">
             <input
