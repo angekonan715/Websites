@@ -6,6 +6,8 @@ import Hero from "@/components/Hero";
 import TripCatalog from "@/components/TripCatalog";
 import { getDestinations } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const trips = await getDestinations();
 

@@ -113,6 +113,10 @@ function databaseUrl() {
   return process.env.DATABASE_URL?.trim() || "";
 }
 
+export function hasDatabaseUrl() {
+  return Boolean(databaseUrl());
+}
+
 function isLocalUrl(url: string) {
   return /localhost|127\.0\.0\.1/.test(url);
 }

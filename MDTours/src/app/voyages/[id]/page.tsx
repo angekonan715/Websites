@@ -9,6 +9,8 @@ import TripPrice from "@/components/TripPrice";
 import { agencyContact } from "@/data/home";
 import { getDestinations } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function VoyagePage({
   params,
 }: {

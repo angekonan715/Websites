@@ -19,6 +19,7 @@ import {
   dbUpdateReservation,
   dbUpdateUser,
   dbUpsertClientNote,
+  hasDatabaseUrl,
 } from "./db";
 import { saveRawUpload } from "./media";
 import type {
@@ -76,10 +77,14 @@ async function ensureDataDir() {
   await fs.mkdir(dataDir, { recursive: true });
 }
 
-export async function getDestinations(): Promise<Destination[]> {
+export async function getStoredDestinations(): Promise<Destination[]> {
   const raw = await fs.readFile(destinationsPath, "utf8");
-  const destinations = JSON.parse(raw) as Destination[];
-  const reservations = await getReservations();
+  return JSON.parse(raw) as Destination[];
+}
+
+export async function getDestinations(): Promise<Destination[]> {
+  const destinations = await getStoredDestinations();
+  const reservations = hasDatabaseUrl() ? await getReservations() : [];
   return destinations.map((destination) =>
     withAvailability(destination, reservations)
   );
@@ -369,7 +374,7 @@ export async function getStoredMegaMenus(): Promise<MegaMenus> {
 }
 
 export async function getMegaMenus(): Promise<MegaMenus> {
-  return enrichMegaMenus(await getStoredMegaMenus(), await getDestinations());
+  return enrichMegaMenus(await getStoredMegaMenus(), await getStoredDestinations());
 }
 
 export async function saveMegaMenus(menus: MegaMenus) {

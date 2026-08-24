@@ -3,6 +3,8 @@ import PageHero from "@/components/PageHero";
 import TripCard from "@/components/TripCard";
 import { getDestinations } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function GroupTripsPage() {
   const destinations = await getDestinations();
 
