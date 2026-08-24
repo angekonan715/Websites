@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "80mb",
+    },
+  },
   async redirects() {
     return [
       { source: "/blog", destination: "/", permanent: true },

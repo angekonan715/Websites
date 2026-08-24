@@ -3,6 +3,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { isImageFile, isUploadedFile, isVideoFile, saveProcessedImage, saveProcessedVideo } from "@/lib/media";
 import { getHeroSettings, saveHeroSettings } from "@/lib/store";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET() {
   return NextResponse.json({ hero: await getHeroSettings() });
 }

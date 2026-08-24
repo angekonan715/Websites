@@ -3,6 +3,7 @@ import path from "path";
 import bcrypt from "bcryptjs";
 import { persistDestination, withAvailability } from "./availability";
 import { keepLiveCampaigns } from "./campaigns";
+import { saveRawUpload } from "./media";
 import type {
   AboutPage,
   Campaign,
@@ -256,14 +257,9 @@ export async function savePublicFile(
   else if (type === "video/webm" || name.endsWith(".webm")) extension = ".webm";
   else throw new Error("Format de fichier non pris en charge. Utilisez JPG, PNG, WEBP ou MP4.");
 
-  const filename = `${basename}${extension}`;
-  const dir = path.join(process.cwd(), "public", folder);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(
-    path.join(dir, filename),
-    Buffer.from(await file.arrayBuffer())
-  );
-  return `/${folder}/${filename}`;
+  const filenameBase = basename;
+  const destFolder = folder === "video" ? "video" : "images";
+  return saveRawUpload(file, destFolder, filenameBase, extension);
 }
 
 export async function getCustomTrips() {

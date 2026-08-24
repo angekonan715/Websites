@@ -35,8 +35,8 @@ export async function POST(request: Request) {
 
     try {
       await sendContactMessageEmail({ name, email, phone, message });
-    } catch {
-      // Le message est enregistré même si l’envoi SMTP n’est pas encore configuré.
+    } catch (error) {
+      console.error("Contact email failed:", error);
     }
 
     return NextResponse.json({ ok: true });

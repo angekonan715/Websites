@@ -31,6 +31,9 @@ yarn-error.log*
 # env files
 .env*
 
+# admin uploads (kept on the server disk / Railway volume)
+/data/uploads/**
+
 # local user accounts
 /data/users.json
 /data/password-resets.json

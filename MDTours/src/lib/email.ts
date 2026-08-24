@@ -3,21 +3,29 @@ import { agencyContact, formatPrice } from "@/data/home";
 import type { CustomTripRequest, Destination, Reservation } from "@/lib/types";
 
 function getTransporter() {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
+  const host = process.env.SMTP_HOST?.trim();
   if (!host || !user || !pass) return null;
+
+  const port = Number(process.env.SMTP_PORT || (host.includes("zoho") ? 465 : 587));
+  const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
   return nodemailer.createTransport({
     host,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === "true",
+    port,
+    secure,
+    requireTLS: !secure,
     auth: { user, pass },
   });
 }
 
 export function isEmailConfigured() {
-  return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  return Boolean(
+    process.env.SMTP_HOST?.trim() &&
+      process.env.SMTP_USER?.trim() &&
+      process.env.SMTP_PASS?.trim()
+  );
 }
 
 function itineraryText(destination?: Destination) {
@@ -69,7 +77,11 @@ function itineraryHtml(destination?: Destination) {
 }
 
 function fromAddress() {
-  return process.env.EMAIL_FROM || `MD Tours <${process.env.SMTP_USER}>`;
+  const user = process.env.SMTP_USER?.trim();
+  const configured = process.env.EMAIL_FROM?.trim();
+  if (configured) return configured;
+  if (user?.includes("@")) return `MD Tours <${user}>`;
+  return "MD Tours <mdcontact@voyagezmdtours.com>";
 }
 
 function agencyInbox() {

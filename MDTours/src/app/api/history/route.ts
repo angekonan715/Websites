@@ -8,6 +8,9 @@ import {
 import { saveProcessedImage, saveProcessedVideo, isImageFile, isVideoFile } from "@/lib/media";
 import type { HistoryTrip } from "@/lib/types";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET() {
   const trips = await getHistoryTrips();
   return NextResponse.json({

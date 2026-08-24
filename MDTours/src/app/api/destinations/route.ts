@@ -9,6 +9,9 @@ import {
 import { saveProcessedImage, saveProcessedVideo, isImageFile, isVideoFile } from "@/lib/media";
 import type { Destination, TripItineraryDay } from "@/lib/types";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 function readTripFields(formData: FormData) {
   return {
     title: String(formData.get("title") ?? "").trim(),

@@ -18,6 +18,7 @@ export const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
 
 const IMAGE_NAME = /\.(jpe?g|png|webp|gif|avif|heic|heif|bmp)$/i;
 const VIDEO_NAME = /\.(mp4|webm|mov|m4v)$/i;
+const UPLOAD_ROOT = path.join(process.cwd(), "data", "uploads");
 
 export function isUploadedFile(value: FormDataEntryValue | null): value is File {
   if (!value || typeof value === "string") return false;
@@ -39,19 +40,63 @@ export function isVideoFile(value: FormDataEntryValue | null): value is File {
   return type.startsWith("video/") || VIDEO_NAME.test(name);
 }
 
-function publicDir(folder: PublicFolder) {
-  return path.join(process.cwd(), "public", folder);
+export function mediaSrc(folder: PublicFolder, filename: string) {
+  return `/media/${folder}/${filename}`;
 }
 
-export function publicFilePath(publicPath: string) {
-  const relative = publicPath.replace(/^\/+/, "").replace(/[\\/]/g, path.sep);
-  return path.join(process.cwd(), "public", relative);
+export function resolveStoredPath(storedPath: string) {
+  const relative = storedPath.replace(/^\/+/, "").replace(/\\/g, "/");
+  const parts = relative.split("/").filter((part) => part && part !== ".." && part !== ".");
+  if (parts[0] === "media") {
+    return path.join(UPLOAD_ROOT, ...parts.slice(1));
+  }
+  return path.join(process.cwd(), "public", ...parts);
+}
+
+export function resolveUploadPath(segments: string[]) {
+  const parts = segments.filter((part) => part && part !== ".." && part !== ".");
+  if (parts.length < 2) return null;
+  const filePath = path.join(UPLOAD_ROOT, ...parts);
+  const root = path.resolve(UPLOAD_ROOT);
+  if (!path.resolve(filePath).startsWith(root + path.sep) && path.resolve(filePath) !== root) {
+    return null;
+  }
+  return filePath;
+}
+
+export function mimeForFile(filePath: string) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".mp4") return "video/mp4";
+  if (ext === ".webm") return "video/webm";
+  return "application/octet-stream";
+}
+
+async function ensureUploadDir(folder: PublicFolder) {
+  const dir = path.join(UPLOAD_ROOT, folder);
+  await fs.mkdir(dir, { recursive: true });
+  return dir;
 }
 
 async function toBuffer(input: File | Buffer | string) {
   if (Buffer.isBuffer(input)) return input;
-  if (typeof input === "string") return fs.readFile(publicFilePath(input));
+  if (typeof input === "string") return fs.readFile(resolveStoredPath(input));
   return Buffer.from(await input.arrayBuffer());
+}
+
+export async function saveRawUpload(
+  file: File,
+  folder: PublicFolder,
+  basename: string,
+  extension: string
+) {
+  const dir = await ensureUploadDir(folder);
+  const filename = `${basename}${extension}`;
+  await fs.writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
+  return mediaSrc(folder, filename);
 }
 
 export async function saveProcessedImage(
@@ -61,21 +106,21 @@ export async function saveProcessedImage(
   preset: MediaPreset
 ) {
   const { width, height } = MEDIA_PRESETS[preset];
-  const dir = publicDir(folder);
-  await fs.mkdir(dir, { recursive: true });
+  const dir = await ensureUploadDir(folder);
   const filename = `${basename}.jpg`;
+  const outPath = path.join(dir, filename);
   try {
     await sharp(await toBuffer(input))
       .rotate()
       .resize(width, height, { fit: "cover", position: "centre" })
       .jpeg({ quality: 82, mozjpeg: true })
-      .toFile(path.join(dir, filename));
+      .toFile(outPath);
   } catch {
     throw new Error(
       "Cette photo n’a pas pu être lue. Envoyez un JPG, PNG ou WEBP (pas HEIC)."
     );
   }
-  return `/${folder}/${filename}`;
+  return mediaSrc(folder, filename);
 }
 
 function runFfmpeg(bin: string, args: string[]) {
@@ -98,8 +143,7 @@ export async function saveProcessedVideo(input: File | string, basename: string)
     throw new Error("La vidéo dépasse 80 Mo. Compressez-la un peu, puis réessayez.");
   }
 
-  const dir = publicDir("video");
-  await fs.mkdir(dir, { recursive: true });
+  const dir = await ensureUploadDir("video");
   const filename = `${basename}.mp4`;
   const outPath = path.join(dir, filename);
   const tmpIn = path.join(
@@ -109,7 +153,7 @@ export async function saveProcessedVideo(input: File | string, basename: string)
 
   try {
     if (typeof input === "string") {
-      await fs.copyFile(publicFilePath(input), tmpIn);
+      await fs.copyFile(resolveStoredPath(input), tmpIn);
     } else {
       await fs.writeFile(tmpIn, Buffer.from(await input.arrayBuffer()));
     }
@@ -117,7 +161,7 @@ export async function saveProcessedVideo(input: File | string, basename: string)
     const bin = typeof ffmpegPath === "string" && ffmpegPath ? ffmpegPath : "";
     if (!bin) {
       await fs.copyFile(tmpIn, outPath);
-      return `/video/${filename}`;
+      return mediaSrc("video", filename);
     }
 
     const { width, height } = MEDIA_PRESETS.hero;
@@ -144,7 +188,7 @@ export async function saveProcessedVideo(input: File | string, basename: string)
     } catch {
       await fs.copyFile(tmpIn, outPath);
     }
-    return `/video/${filename}`;
+    return mediaSrc("video", filename);
   } finally {
     await fs.unlink(tmpIn).catch(() => undefined);
   }

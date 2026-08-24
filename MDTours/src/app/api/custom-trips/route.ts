@@ -157,8 +157,8 @@ export async function POST(request: Request) {
     try {
       await sendCustomTripQuoteEmail(customTrip);
       customTrip.quoteEmailSentAt = now;
-    } catch {
-      // SMTP is optional; the live quote is still saved.
+    } catch (error) {
+      console.error("Custom trip email failed:", error);
     }
 
     const requests = await getCustomTrips();

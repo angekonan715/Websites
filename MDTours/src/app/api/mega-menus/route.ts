@@ -5,6 +5,9 @@ import { isImageFile, saveProcessedImage } from "@/lib/media";
 import { placePath, regionPath, slugify } from "@/lib/megaMenus";
 import type { MegaMenuKey, MegaMenuRegion, MegaMenus } from "@/lib/types";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 function sanitizeRegions(value: unknown, key: MegaMenuKey): MegaMenuRegion[] {
   if (!Array.isArray(value)) return [];
   return value

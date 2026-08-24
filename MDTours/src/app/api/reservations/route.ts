@@ -117,8 +117,8 @@ export async function POST(request: Request) {
 
     try {
       await sendTripInquiryEmail(reservation, destination);
-    } catch {
-      // La réservation est enregistrée même si l’email n’est pas configuré.
+    } catch (error) {
+      console.error("Reservation email failed:", error);
     }
 
     return NextResponse.json({ reservation }, { status: 201 });
