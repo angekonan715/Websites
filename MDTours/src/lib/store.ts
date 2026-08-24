@@ -3,6 +3,23 @@ import path from "path";
 import bcrypt from "bcryptjs";
 import { persistDestination, withAvailability } from "./availability";
 import { keepLiveCampaigns } from "./campaigns";
+import {
+  dbGetClientNotes,
+  dbGetCustomTripById,
+  dbGetCustomTrips,
+  dbGetReservationById,
+  dbGetReservations,
+  dbGetUserByEmail,
+  dbGetUserById,
+  dbGetUsers,
+  dbInsertCustomTrip,
+  dbInsertReservation,
+  dbInsertUser,
+  dbUpdateCustomTrip,
+  dbUpdateReservation,
+  dbUpdateUser,
+  dbUpsertClientNote,
+} from "./db";
 import { saveRawUpload } from "./media";
 import type {
   AboutPage,
@@ -18,7 +35,6 @@ import type {
   Testimonial,
   TestimonyInvite,
   User,
-  PasswordReset,
   MegaMenus,
   HeroSettings,
 } from "./types";
@@ -26,19 +42,14 @@ import { defaultMegaMenus, enrichMegaMenus } from "./megaMenus";
 
 const dataDir = path.join(process.cwd(), "data");
 const destinationsPath = path.join(dataDir, "destinations.json");
-const usersPath = path.join(dataDir, "users.json");
-const reservationsPath = path.join(dataDir, "reservations.json");
 const testimonialsPath = path.join(dataDir, "testimonials.json");
 const invitesPath = path.join(dataDir, "invites.json");
 const messagesPath = path.join(dataDir, "messages.json");
-const customTripsPath = path.join(dataDir, "custom-trips.json");
 const historyPath = path.join(dataDir, "history.json");
 const personalizedCatalogPath = path.join(dataDir, "personalized-catalog.json");
 const aboutPath = path.join(dataDir, "about.json");
 const campaignsPath = path.join(dataDir, "campaigns.json");
-const clientNotesPath = path.join(dataDir, "client-notes.json");
 const shareLinksPath = path.join(dataDir, "share-links.json");
-const passwordResetsPath = path.join(dataDir, "password-resets.json");
 const megaMenusPath = path.join(dataDir, "mega-menus.json");
 const heroPath = path.join(dataDir, "hero.json");
 
@@ -84,35 +95,39 @@ export async function saveDestinations(destinations: Destination[]) {
 }
 
 export async function getUsers(): Promise<User[]> {
-  await ensureDataDir();
-  try {
-    const raw = await fs.readFile(usersPath, "utf8");
-    return JSON.parse(raw) as User[];
-  } catch {
-    return [];
-  }
+  return dbGetUsers();
 }
 
-export async function saveUsers(users: User[]) {
-  await ensureDataDir();
-  await fs.writeFile(usersPath, JSON.stringify(users, null, 2), "utf8");
+export async function getUserByEmail(email: string) {
+  return dbGetUserByEmail(email);
+}
+
+export async function getUserById(id: string) {
+  return dbGetUserById(id);
+}
+
+export async function insertUser(user: User) {
+  await dbInsertUser(user);
+}
+
+export async function updateUser(user: User) {
+  await dbUpdateUser(user);
 }
 
 export async function ensureAdminUser() {
   const email = (process.env.ADMIN_EMAIL ?? "admin@voyagezmdtours.com").toLowerCase();
   const password = process.env.ADMIN_PASSWORD ?? "MDs1996@@";
-  const users = await getUsers();
-  const existing = users.find((user) => user.email === email);
+  const existing = await dbGetUserByEmail(email);
 
   if (!existing) {
-    const seeded = users.find((user) => user.id === "admin");
+    const seeded = await dbGetUserById("admin");
     if (seeded) {
       seeded.email = email;
       seeded.role = "admin";
-      await saveUsers(users);
+      await dbUpdateUser(seeded);
       return;
     }
-    users.push({
+    await dbInsertUser({
       id: "admin",
       name: "Administrateur",
       email,
@@ -120,13 +135,12 @@ export async function ensureAdminUser() {
       role: "admin",
       createdAt: new Date().toISOString(),
     });
-    await saveUsers(users);
     return;
   }
 
   if (existing.role !== "admin") {
     existing.role = "admin";
-    await saveUsers(users);
+    await dbUpdateUser(existing);
   }
 }
 
@@ -150,22 +164,19 @@ export function toPublicUser(user: User) {
 }
 
 export async function getReservations(): Promise<Reservation[]> {
-  await ensureDataDir();
-  try {
-    const raw = await fs.readFile(reservationsPath, "utf8");
-    return JSON.parse(raw) as Reservation[];
-  } catch {
-    return [];
-  }
+  return dbGetReservations();
 }
 
-export async function saveReservations(reservations: Reservation[]) {
-  await ensureDataDir();
-  await fs.writeFile(
-    reservationsPath,
-    JSON.stringify(reservations, null, 2),
-    "utf8"
-  );
+export async function getReservationById(id: string) {
+  return dbGetReservationById(id);
+}
+
+export async function insertReservation(item: Reservation) {
+  await dbInsertReservation(item);
+}
+
+export async function updateReservation(item: Reservation) {
+  await dbUpdateReservation(item);
 }
 
 export function createBookingReference() {
@@ -263,11 +274,19 @@ export async function savePublicFile(
 }
 
 export async function getCustomTrips() {
-  return readJson<CustomTripRequest[]>(customTripsPath, []);
+  return dbGetCustomTrips();
 }
 
-export async function saveCustomTrips(items: CustomTripRequest[]) {
-  await writeJson(customTripsPath, items);
+export async function getCustomTripById(id: string) {
+  return dbGetCustomTripById(id);
+}
+
+export async function insertCustomTrip(item: CustomTripRequest) {
+  await dbInsertCustomTrip(item);
+}
+
+export async function updateCustomTrip(item: CustomTripRequest) {
+  await dbUpdateCustomTrip(item);
 }
 
 export async function getHistoryTrips() {
@@ -320,11 +339,11 @@ export async function saveCampaigns(items: Campaign[]) {
 }
 
 export async function getClientNotes(): Promise<ClientNote[]> {
-  return readJson<ClientNote[]>(clientNotesPath, []);
+  return dbGetClientNotes();
 }
 
-export async function saveClientNotes(items: ClientNote[]) {
-  await writeJson(clientNotesPath, items);
+export async function upsertClientNote(note: ClientNote) {
+  await dbUpsertClientNote(note);
 }
 
 export async function getShareLinks(): Promise<ShareLink[]> {
@@ -333,14 +352,6 @@ export async function getShareLinks(): Promise<ShareLink[]> {
 
 export async function saveShareLinks(items: ShareLink[]) {
   await writeJson(shareLinksPath, items);
-}
-
-export async function getPasswordResets(): Promise<PasswordReset[]> {
-  return readJson<PasswordReset[]>(passwordResetsPath, []);
-}
-
-export async function savePasswordResets(items: PasswordReset[]) {
-  await writeJson(passwordResetsPath, items);
 }
 
 export async function getStoredMegaMenus(): Promise<MegaMenus> {

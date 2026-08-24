@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createSessionToken, setSessionCookie } from "@/lib/auth";
-import { ensureAdminUser, getUsers, toPublicUser } from "@/lib/store";
+import { ensureAdminUser, getUserByEmail, toPublicUser } from "@/lib/store";
 
 export async function POST(request: Request) {
   try {
@@ -20,8 +20,7 @@ export async function POST(request: Request) {
     }
 
     await ensureAdminUser();
-    const users = await getUsers();
-    const user = users.find((item) => item.email === email);
+    const user = await getUserByEmail(email);
 
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return NextResponse.json(

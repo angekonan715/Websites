@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { agencyContact } from "@/data/home";
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email";
 import { getAppUrl, issuePasswordReset } from "@/lib/passwordReset";
-import { getUsers } from "@/lib/store";
+import { getUserByEmail } from "@/lib/store";
 
 const genericOk = {
   ok: true,
@@ -29,8 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsers();
-    const user = users.find((item) => item.email === email);
+    const user = await getUserByEmail(email);
     if (!user) {
       return NextResponse.json(genericOk);
     }

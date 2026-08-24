@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mdtours
+      POSTGRES_PASSWORD: mdtours
+      POSTGRES_DB: mdtours
+    ports:
+      - "5432:5432"
+    volumes:
+      - mdtours_pg:/var/lib/postgresql/data
+
+volumes:
+  mdtours_pg:

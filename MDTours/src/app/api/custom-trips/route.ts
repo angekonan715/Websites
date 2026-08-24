@@ -4,10 +4,12 @@ import {
   createBookingReference,
   getCustomTrips,
   getPersonalizedCatalog,
-  saveCustomTrips,
+  insertCustomTrip,
+  updateCustomTrip,
 } from "@/lib/store";
 import { sendCustomTripQuoteEmail } from "@/lib/email";
 import { buildPersonalizedQuote, travelerCount } from "@/lib/personalizedQuote";
+import { isOwnBooking } from "@/lib/records";
 import type {
   AccommodationType,
   CustomTripRequest,
@@ -27,7 +29,7 @@ export async function GET() {
   const visible =
     user.role === "admin"
       ? requests
-      : requests.filter((item) => item.userId === user.id);
+      : requests.filter((item) => isOwnBooking(user, item));
 
   return NextResponse.json({
     requests: visible.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -154,20 +156,13 @@ export async function POST(request: Request) {
       updatedAt: now,
     };
 
-    const requests = await getCustomTrips();
-    requests.push(customTrip);
-    await saveCustomTrips(requests);
+    await insertCustomTrip(customTrip);
 
     after(async () => {
       try {
         await sendCustomTripQuoteEmail(customTrip);
         customTrip.quoteEmailSentAt = new Date().toISOString();
-        const latest = await getCustomTrips();
-        const stored = latest.find((item) => item.id === customTrip.id);
-        if (stored) {
-          stored.quoteEmailSentAt = customTrip.quoteEmailSentAt;
-          await saveCustomTrips(latest);
-        }
+        await updateCustomTrip(customTrip);
       } catch (error) {
         console.error("Custom trip email failed:", error);
       }

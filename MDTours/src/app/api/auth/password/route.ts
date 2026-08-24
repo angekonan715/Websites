@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getCurrentUser } from "@/lib/auth";
-import { getUsers, saveUsers } from "@/lib/store";
+import { getUserById, updateUser } from "@/lib/store";
 
 export async function POST(request: Request) {
   try {
@@ -47,8 +47,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsers();
-    const user = users.find((item) => item.id === session.id);
+    const user = await getUserById(session.id);
     if (!user) {
       return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
     }
@@ -61,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
-    await saveUsers(users);
+    await updateUser(user);
 
     return NextResponse.json({ ok: true });
   } catch {

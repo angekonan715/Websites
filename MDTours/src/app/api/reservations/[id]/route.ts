@@ -1,7 +1,8 @@
 import { after, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { sendTripConfirmationEmail } from "@/lib/email";
-import { getDestinations, getReservations, saveReservations } from "@/lib/store";
+import { isOwnBooking } from "@/lib/records";
+import { getDestinations, getReservationById, updateReservation } from "@/lib/store";
 import type { ReservationStatus } from "@/lib/types";
 
 const allowedStatuses: ReservationStatus[] = [
@@ -21,13 +22,12 @@ export async function GET(
   }
 
   const { id } = await context.params;
-  const reservations = await getReservations();
-  const reservation = reservations.find((item) => item.id === id);
+  const reservation = await getReservationById(id);
 
   if (!reservation) {
     return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
   }
-  if (user.role !== "admin" && reservation.userId !== user.id) {
+  if (user.role !== "admin" && !isOwnBooking(user, reservation)) {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
 
@@ -49,8 +49,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
   }
 
-  const reservations = await getReservations();
-  const reservation = reservations.find((item) => item.id === id);
+  const reservation = await getReservationById(id);
   if (!reservation) {
     return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
   }
@@ -96,7 +95,7 @@ export async function PATCH(
     reservation.appointmentConfirmedAt = now;
   }
 
-  await saveReservations(reservations);
+  await updateReservation(reservation);
 
   if (body.status === "payment_received") {
     after(async () => {
@@ -107,12 +106,7 @@ export async function PATCH(
         );
         await sendTripConfirmationEmail(reservation, destination);
         reservation.confirmationEmailSentAt = new Date().toISOString();
-        const latest = await getReservations();
-        const stored = latest.find((item) => item.id === reservation.id);
-        if (stored) {
-          stored.confirmationEmailSentAt = reservation.confirmationEmailSentAt;
-          await saveReservations(latest);
-        }
+        await updateReservation(reservation);
       } catch (error) {
         console.error("Confirmation email failed:", error);
       }

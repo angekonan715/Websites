@@ -6,7 +6,7 @@ import {
   getCustomTrips,
   getReservations,
   getUsers,
-  saveClientNotes,
+  upsertClientNote,
 } from "@/lib/store";
 
 export async function GET() {
@@ -54,16 +54,11 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Client introuvable." }, { status: 400 });
   }
 
-  const notes = await getClientNotes();
-  const existing = notes.find((item) => item.id === clientId);
   const text = body.notes?.trim() ?? "";
-  const now = new Date().toISOString();
-  if (existing) {
-    existing.notes = text;
-    existing.updatedAt = now;
-  } else {
-    notes.push({ id: clientId, notes: text, updatedAt: now });
-  }
-  await saveClientNotes(notes);
+  await upsertClientNote({
+    id: clientId,
+    notes: text,
+    updatedAt: new Date().toISOString(),
+  });
   return NextResponse.json({ ok: true });
 }

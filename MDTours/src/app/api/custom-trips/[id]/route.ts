@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getCustomTrips, saveCustomTrips } from "@/lib/store";
+import { isOwnBooking } from "@/lib/records";
+import { getCustomTripById, updateCustomTrip } from "@/lib/store";
 import type { CustomTripStatus } from "@/lib/types";
 
 export async function GET(
@@ -13,11 +14,11 @@ export async function GET(
   }
 
   const { id } = await context.params;
-  const item = (await getCustomTrips()).find((entry) => entry.id === id);
+  const item = await getCustomTripById(id);
   if (!item) {
     return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
   }
-  if (user.role !== "admin" && item.userId !== user.id) {
+  if (user.role !== "admin" && !isOwnBooking(user, item)) {
     return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
   }
   return NextResponse.json({ request: item });
@@ -40,9 +41,7 @@ export async function PATCH(
     proposedPrice?: number;
     proposedDuration?: string;
   };
-
-  const items = await getCustomTrips();
-  const item = items.find((entry) => entry.id === id);
+  const item = await getCustomTripById(id);
   if (!item) {
     return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
   }
@@ -67,6 +66,6 @@ export async function PATCH(
   }
   item.updatedAt = now;
 
-  await saveCustomTrips(items);
+  await updateCustomTrip(item);
   return NextResponse.json({ request: item });
 }

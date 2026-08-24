@@ -1,6 +1,10 @@
 import { createHash, randomBytes } from "crypto";
-import type { PasswordReset } from "./types";
-import { getPasswordResets, savePasswordResets } from "./store";
+import {
+  dbConsumePasswordReset,
+  dbLatestPasswordReset,
+  dbPrunePasswordResets,
+  dbReplacePasswordReset,
+} from "./db";
 
 const RESET_TTL_MS = 60 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 2 * 60 * 1000;
@@ -25,49 +29,26 @@ export function getAppUrl(request: Request) {
   return `${proto}://${host}`;
 }
 
-export async function prunePasswordResets(items?: PasswordReset[]) {
-  const now = Date.now();
-  const current = items ?? (await getPasswordResets());
-  const live = current.filter(
-    (item) => new Date(item.expiresAt).getTime() > now
-  );
-  if (live.length !== current.length) {
-    await savePasswordResets(live);
-  }
-  return live;
-}
-
 export async function issuePasswordReset(userId: string) {
-  const items = await prunePasswordResets();
-  const latest = items
-    .filter((item) => item.userId === userId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-  if (
-    latest &&
-    Date.now() - new Date(latest.createdAt).getTime() < RESEND_COOLDOWN_MS
-  ) {
+  await dbPrunePasswordResets();
+  const latest = await dbLatestPasswordReset(userId);
+  if (latest && Date.now() - new Date(latest).getTime() < RESEND_COOLDOWN_MS) {
     return { token: null as string | null, throttled: true };
   }
 
   const token = createResetToken();
   const now = new Date();
-  const next = items.filter((item) => item.userId !== userId);
-  next.push({
+  await dbReplacePasswordReset({
     id: crypto.randomUUID(),
     userId,
     tokenHash: hashResetToken(token),
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + RESET_TTL_MS).toISOString(),
   });
-  await savePasswordResets(next);
   return { token, throttled: false };
 }
 
 export async function consumePasswordReset(token: string) {
-  const items = await prunePasswordResets();
-  const tokenHash = hashResetToken(token);
-  const match = items.find((item) => item.tokenHash === tokenHash);
-  if (!match) return null;
-  await savePasswordResets(items.filter((item) => item.id !== match.id));
-  return match;
+  await dbPrunePasswordResets();
+  return dbConsumePasswordReset(hashResetToken(token));
 }

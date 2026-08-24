@@ -4,6 +4,7 @@ import type {
   ClientRecord,
   ClientTripRecord,
   CustomTripRequest,
+  PublicUser,
   Reservation,
   ReservationStatus,
   User,
@@ -25,8 +26,18 @@ export function reservationPaidAmount(item: Reservation) {
   return isPaidReservation(item.status) ? item.totalPrice : 0;
 }
 
-function customTripAmount(item: CustomTripRequest) {
+export function customTripAmount(item: CustomTripRequest) {
   return item.proposedPrice || item.quote?.total || 0;
+}
+
+export function isOwnBooking(
+  user: Pick<PublicUser, "id" | "email">,
+  booking: { userId?: string; email?: string }
+) {
+  if (booking.userId && booking.userId === user.id) return true;
+  const bookingEmail = booking.email?.trim().toLowerCase();
+  const userEmail = user.email.trim().toLowerCase();
+  return Boolean(bookingEmail && bookingEmail === userEmail);
 }
 
 function upsertName(current: string, next?: string) {

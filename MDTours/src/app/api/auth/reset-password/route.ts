@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createSessionToken, setSessionCookie } from "@/lib/auth";
 import { consumePasswordReset } from "@/lib/passwordReset";
-import { getUsers, saveUsers, toPublicUser } from "@/lib/store";
+import { getUserById, toPublicUser, updateUser } from "@/lib/store";
 
 export async function POST(request: Request) {
   try {
@@ -45,14 +45,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const users = await getUsers();
-    const user = users.find((item) => item.id === reset.userId);
+    const user = await getUserById(reset.userId);
     if (!user) {
       return NextResponse.json({ error: "Compte introuvable." }, { status: 404 });
     }
 
     user.passwordHash = await bcrypt.hash(password, 10);
-    await saveUsers(users);
+    await updateUser(user);
 
     const publicUser = toPublicUser(user);
     const session = await createSessionToken(publicUser);

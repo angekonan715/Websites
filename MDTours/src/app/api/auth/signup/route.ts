@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createSessionToken, setSessionCookie } from "@/lib/auth";
+import { isUniqueViolation } from "@/lib/db";
 import {
   ensureAdminUser,
-  getUsers,
-  saveUsers,
+  insertUser,
   toPublicUser,
 } from "@/lib/store";
 
@@ -36,14 +36,6 @@ export async function POST(request: Request) {
     }
 
     await ensureAdminUser();
-    const users = await getUsers();
-    if (users.some((user) => user.email === email)) {
-      return NextResponse.json(
-        { error: "Un compte existe déjà avec cet email." },
-        { status: 409 }
-      );
-    }
-
     const adminEmail = (process.env.ADMIN_EMAIL ?? "admin@voyagezmdtours.com").toLowerCase();
     const user = {
       id: crypto.randomUUID(),
@@ -54,8 +46,17 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    users.push(user);
-    await saveUsers(users);
+    try {
+      await insertUser(user);
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        return NextResponse.json(
+          { error: "Un compte existe déjà avec cet email." },
+          { status: 409 }
+        );
+      }
+      throw error;
+    }
 
     const publicUser = toPublicUser(user);
     const token = await createSessionToken(publicUser);

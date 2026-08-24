@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ["sharp", "ffmpeg-static"],
+  serverExternalPackages: ["sharp", "ffmpeg-static", "pg"],
   images: {
     unoptimized: true,
   },

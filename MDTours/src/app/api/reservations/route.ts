@@ -6,8 +6,9 @@ import {
   createBookingReference,
   getDestinations,
   getReservations,
-  saveReservations,
+  insertReservation,
 } from "@/lib/store";
+import { isOwnBooking } from "@/lib/records";
 import type { Reservation } from "@/lib/types";
 
 export async function GET() {
@@ -20,7 +21,7 @@ export async function GET() {
   const visible =
     user.role === "admin"
       ? reservations
-      : reservations.filter((item) => item.userId === user.id);
+      : reservations.filter((item) => isOwnBooking(user, item));
 
   return NextResponse.json({
     reservations: visible.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -111,9 +112,7 @@ export async function POST(request: Request) {
       updatedAt: now,
     };
 
-    const reservations = await getReservations();
-    reservations.push(reservation);
-    await saveReservations(reservations);
+    await insertReservation(reservation);
 
     after(async () => {
       try {
