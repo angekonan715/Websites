@@ -62,7 +62,7 @@ export default function Hero() {
         <div className="max-w-2xl">
           <h1 className="text-[1.7rem] font-bold leading-tight text-white sm:text-4xl lg:text-[3.25rem] lg:leading-[1.15]">
             <span className="relative inline-block">
-              Voyagez autrement.
+              Le guide de confiance.
               <span className="absolute -bottom-1 left-0 h-0.5 w-16 bg-white/60" />
             </span>
             <br />

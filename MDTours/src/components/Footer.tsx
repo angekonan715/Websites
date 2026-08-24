@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:grid-cols-2 sm:px-6 sm:py-12 lg:grid-cols-4 lg:px-8">
         <div>
           <p className="text-lg font-extrabold">MD TOURS</p>
-          <p className="mt-2 text-sm text-white/70">Voyagez autrement.</p>
+          <p className="mt-2 text-sm text-white/70">Le guide de confiance.</p>
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold">

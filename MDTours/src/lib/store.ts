@@ -91,12 +91,19 @@ export async function saveUsers(users: User[]) {
 }
 
 export async function ensureAdminUser() {
-  const email = (process.env.ADMIN_EMAIL ?? "admin@mdtours.com").toLowerCase();
-  const password = process.env.ADMIN_PASSWORD ?? "Admin123!";
+  const email = (process.env.ADMIN_EMAIL ?? "admin@voyagezmdtours.com").toLowerCase();
+  const password = process.env.ADMIN_PASSWORD ?? "MDs1996@@";
   const users = await getUsers();
   const existing = users.find((user) => user.email === email);
 
   if (!existing) {
+    const seeded = users.find((user) => user.id === "admin");
+    if (seeded) {
+      seeded.email = email;
+      seeded.role = "admin";
+      await saveUsers(users);
+      return;
+    }
     users.push({
       id: "admin",
       name: "Administrateur",

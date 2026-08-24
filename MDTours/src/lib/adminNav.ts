@@ -2,6 +2,7 @@ export const adminCategoryGroups = [
   { id: "offre", label: "Offre" },
   { id: "commercial", label: "Commercial" },
   { id: "contenu", label: "Contenu du site" },
+  { id: "compte", label: "Votre compte" },
 ] as const;
 
 export const adminCategories = [
@@ -58,6 +59,12 @@ export const adminCategories = [
     group: "contenu",
     label: "Témoignages",
     description: "Avis clients et liens d’invitation.",
+  },
+  {
+    id: "mot-de-passe",
+    group: "compte",
+    label: "Mot de passe",
+    description: "Changer le mot de passe de connexion administrateur.",
   },
 ] as const;
 

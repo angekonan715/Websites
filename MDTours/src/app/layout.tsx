@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MD Tours — Voyagez autrement",
+  title: "MD Tours — Le guide de confiance",
   description:
     "Des expériences uniques, des souvenirs inoubliables et un accompagnement de qualité en Afrique.",
 };

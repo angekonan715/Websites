@@ -23,7 +23,7 @@ export default async function SocialLinksPage() {
         <p className="text-center text-[11px] font-bold uppercase tracking-[0.22em] text-gold">
           MD Tours
         </p>
-        <h1 className="mt-2 text-center text-3xl font-bold text-white">Voyagez autrement</h1>
+        <h1 className="mt-2 text-center text-3xl font-bold text-white">Le guide de confiance</h1>
         <p className="mx-auto mt-3 max-w-sm text-center text-sm text-white/70">
           Choisissez une page. Ces liens sont faits pour Instagram et TikTok.
         </p>

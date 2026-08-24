@@ -21,7 +21,7 @@ export default function Logo() {
           Tours
         </p>
         <p className="mt-1 hidden text-[9px] font-medium tracking-wide text-white/75 sm:block">
-          Voyagez autrement
+          Le guide de confiance
         </p>
       </div>
     </a>

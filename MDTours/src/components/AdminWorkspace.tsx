@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   ChevronRight,
   Clock3,
+  KeyRound,
   LayoutGrid,
   Link2,
   Megaphone,
@@ -24,6 +25,7 @@ import AdminCampaigns from "@/components/AdminCampaigns";
 import AdminClients from "@/components/AdminClients";
 import AdminCustomTrips from "@/components/AdminCustomTrips";
 import AdminHistory from "@/components/AdminHistory";
+import AdminPassword from "@/components/AdminPassword";
 import AdminPersonalizedCatalog from "@/components/AdminPersonalizedCatalog";
 import AdminReservations from "@/components/AdminReservations";
 import AdminShareLinks from "@/components/AdminShareLinks";
@@ -46,6 +48,7 @@ const icons = {
   "a-propos": BookOpen,
   historique: Clock3,
   temoignages: MessageSquareQuote,
+  "mot-de-passe": KeyRound,
 };
 
 export default function AdminWorkspace() {
@@ -367,5 +370,7 @@ function renderCategory(id: AdminCategoryId) {
       return <AdminHistory />;
     case "temoignages":
       return <AdminTestimonials />;
+    case "mot-de-passe":
+      return <AdminPassword />;
   }
 }

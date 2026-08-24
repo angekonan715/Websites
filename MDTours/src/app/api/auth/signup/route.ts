@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const adminEmail = (process.env.ADMIN_EMAIL ?? "admin@mdtours.com").toLowerCase();
+    const adminEmail = (process.env.ADMIN_EMAIL ?? "admin@voyagezmdtours.com").toLowerCase();
     const user = {
       id: crypto.randomUUID(),
       name,

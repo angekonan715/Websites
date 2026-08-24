@@ -15,10 +15,10 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
 - **Utilisateur :** créez un compte via **Connexion → Créer un compte**
 - **Admin (ajouter des voyages) :**
-  - Email : `admin@mdtours.com`
-  - Mot de passe : `Admin123!`
+  - Email : `admin@voyagezmdtours.com`
+  - Mot de passe : `MDs1996@@`
 
-Après connexion admin, ouvrez [http://localhost:3000/admin](http://localhost:3000/admin) pour publier un nouveau voyage (titre, pays, durée, prix, photo).
+Après connexion admin, ouvrez [http://localhost:3000/admin](http://localhost:3000/admin) pour publier un nouveau voyage. Le mot de passe se change dans **Admin → Mot de passe**.
 
 ## Ajouter des images et des vidéos
 
