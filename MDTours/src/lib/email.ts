@@ -2,51 +2,68 @@ import nodemailer from "nodemailer";
 import { agencyContact, formatPrice, reservationStatusLabel } from "@/data/home";
 import type { CustomTripRequest, Destination, Reservation, ReservationStatus } from "@/lib/types";
 
-const SEND_TIMEOUT_MS = 12_000;
+const SEND_TIMEOUT_MS = 25_000;
 
-function getTransporter() {
+function smtpCredentials() {
   const user = process.env.SMTP_USER?.trim();
   const pass = process.env.SMTP_PASS?.trim();
   const host = process.env.SMTP_HOST?.trim();
   if (!host || !user || !pass) return null;
+  return { host, user, pass };
+}
 
-  const port = Number(process.env.SMTP_PORT || (host.includes("zoho") ? 465 : 587));
-  const secure = process.env.SMTP_SECURE === "true" || port === 465;
-
+function createTransporter(host: string, user: string, pass: string, port: number) {
+  const secure = port === 465;
   return nodemailer.createTransport({
     host,
     port,
     secure,
     requireTLS: !secure,
+    family: 4,
     connectionTimeout: SEND_TIMEOUT_MS,
     greetingTimeout: SEND_TIMEOUT_MS,
     socketTimeout: SEND_TIMEOUT_MS,
     auth: { user, pass },
+    tls: {
+      minVersion: "TLSv1.2",
+      servername: host,
+    },
   });
 }
 
+function smtpPorts(host: string) {
+  const configured = Number(process.env.SMTP_PORT || 0);
+  const preferred = configured === 465 || configured === 587 ? configured : host.includes("zoho") ? 465 : 587;
+  const fallback = preferred === 465 ? 587 : 465;
+  return [preferred, fallback];
+}
+
 async function sendMail(options: nodemailer.SendMailOptions) {
-  const transporter = getTransporter();
-  if (!transporter) {
+  const creds = smtpCredentials();
+  if (!creds) {
     throw new Error(
       "Email non envoyé : configurez SMTP_HOST, SMTP_USER et SMTP_PASS."
     );
   }
 
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    await Promise.race([
-      transporter.sendMail(options),
-      new Promise<never>((_, reject) => {
-        timer = setTimeout(
-          () => reject(new Error("Délai d’envoi email dépassé.")),
-          SEND_TIMEOUT_MS
-        );
-      }),
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
+  const ports = smtpPorts(creds.host);
+  let lastError: unknown;
+  for (const port of ports) {
+    const transporter = createTransporter(creds.host, creds.user, creds.pass, port);
+    try {
+      await transporter.sendMail(options);
+      return;
+    } catch (error) {
+      lastError = error;
+      console.error(`SMTP send failed on ${creds.host}:${port}`, error);
+    } finally {
+      transporter.close();
+    }
   }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Délai d’envoi email dépassé.");
 }
 
 export function isEmailConfigured() {
