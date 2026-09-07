@@ -4,6 +4,8 @@ import PageHero from "@/components/PageHero";
 import TrustBadges from "@/components/TrustBadges";
 import { getAboutPage } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function AboutPage() {
   const page = await getAboutPage();
 

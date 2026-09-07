@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import PageHero from "@/components/PageHero";
 import { getHistoryTrips } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function HistoriqueDetailPage({
   params,
 }: {

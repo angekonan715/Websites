@@ -3,6 +3,8 @@ import Header from "@/components/Header";
 import PageHero from "@/components/PageHero";
 import { getMegaMenus } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function DestinationsPage() {
   const menus = await getMegaMenus();
   const regions = menus.destinations;

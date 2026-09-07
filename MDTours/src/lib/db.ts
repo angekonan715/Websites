@@ -97,6 +97,12 @@ CREATE TABLE IF NOT EXISTS client_notes (
   notes TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS cms_documents (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `;
 
 type QueryFn = <T extends QueryResultRow>(
@@ -159,6 +165,7 @@ async function initDb() {
     await rawQuery(statement);
   }
   await importJsonIfEmpty();
+  await importCmsIfEmpty();
 }
 
 export async function ensureDb() {
@@ -283,6 +290,75 @@ async function importJsonIfEmpty() {
       `[db] Imported ${users.length} users, ${reservations.length} reservations, ${customTrips.length} custom trips from JSON.`
     );
   }
+}
+
+export const CMS_KEYS = {
+  destinations: "destinations",
+  megaMenus: "mega_menus",
+  about: "about",
+  hero: "hero",
+  history: "history",
+  testimonials: "testimonials",
+  campaigns: "campaigns",
+  personalizedCatalog: "personalized_catalog",
+  shareLinks: "share_links",
+  invites: "invites",
+  messages: "messages",
+} as const;
+
+const CMS_SEED_FILES: { key: string; filename: string; fallback: unknown }[] = [
+  { key: CMS_KEYS.destinations, filename: "destinations.json", fallback: [] },
+  { key: CMS_KEYS.megaMenus, filename: "mega-menus.json", fallback: null },
+  { key: CMS_KEYS.about, filename: "about.json", fallback: null },
+  { key: CMS_KEYS.hero, filename: "hero.json", fallback: null },
+  { key: CMS_KEYS.history, filename: "history.json", fallback: [] },
+  { key: CMS_KEYS.testimonials, filename: "testimonials.json", fallback: [] },
+  { key: CMS_KEYS.campaigns, filename: "campaigns.json", fallback: [] },
+  { key: CMS_KEYS.personalizedCatalog, filename: "personalized-catalog.json", fallback: null },
+  { key: CMS_KEYS.shareLinks, filename: "share-links.json", fallback: [] },
+  { key: CMS_KEYS.invites, filename: "invites.json", fallback: [] },
+  { key: CMS_KEYS.messages, filename: "messages.json", fallback: [] },
+];
+
+async function importCmsIfEmpty() {
+  let imported = 0;
+  for (const item of CMS_SEED_FILES) {
+    const { rows } = await rawQuery<{ n: string | number }>(
+      `SELECT COUNT(*)::int AS n FROM cms_documents WHERE key = $1`,
+      [item.key]
+    );
+    if (Number(rows[0]?.n ?? 0) > 0) continue;
+    const value = await readJsonFile(item.filename, item.fallback);
+    if (value == null) continue;
+    await rawQuery(
+      `INSERT INTO cms_documents (key, value, updated_at)
+       VALUES ($1, $2::jsonb, NOW())
+       ON CONFLICT (key) DO NOTHING`,
+      [item.key, jsonParam(value)]
+    );
+    imported += 1;
+  }
+  if (imported) {
+    console.info(`[db] Imported ${imported} CMS documents from JSON.`);
+  }
+}
+
+export async function dbGetCms<T>(key: string): Promise<T | undefined> {
+  const { rows } = await query<{ value: T }>(
+    `SELECT value FROM cms_documents WHERE key = $1`,
+    [key]
+  );
+  if (!rows[0]) return undefined;
+  return asJson<T>(rows[0].value);
+}
+
+export async function dbSetCms<T>(key: string, value: T) {
+  await query(
+    `INSERT INTO cms_documents (key, value, updated_at)
+     VALUES ($1, $2::jsonb, NOW())
+     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+    [key, jsonParam(value)]
+  );
 }
 
 type UserRow = {

@@ -4,7 +4,9 @@ import bcrypt from "bcryptjs";
 import { persistDestination, withAvailability } from "./availability";
 import { keepLiveCampaigns } from "./campaigns";
 import {
+  CMS_KEYS,
   dbGetClientNotes,
+  dbGetCms,
   dbGetCustomTripById,
   dbGetCustomTrips,
   dbGetReservationById,
@@ -15,6 +17,7 @@ import {
   dbInsertCustomTrip,
   dbInsertReservation,
   dbInsertUser,
+  dbSetCms,
   dbUpdateCustomTrip,
   dbUpdateReservation,
   dbUpdateUser,
@@ -77,26 +80,54 @@ async function ensureDataDir() {
   await fs.mkdir(dataDir, { recursive: true });
 }
 
+async function readCms<T>(key: string, fallback: () => Promise<T>): Promise<T> {
+  if (hasDatabaseUrl()) {
+    try {
+      const stored = await dbGetCms<T>(key);
+      if (stored !== undefined) return stored;
+    } catch {
+      // Build or a down local database still uses the JSON files.
+    }
+  }
+  return fallback();
+}
+
+async function writeCms<T>(key: string, value: T, fallback: () => Promise<void>) {
+  if (hasDatabaseUrl()) {
+    await dbSetCms(key, value);
+    return;
+  }
+  await fallback();
+}
+
 export async function getStoredDestinations(): Promise<Destination[]> {
-  const raw = await fs.readFile(destinationsPath, "utf8");
-  return JSON.parse(raw) as Destination[];
+  return readCms(CMS_KEYS.destinations, async () => {
+    const raw = await fs.readFile(destinationsPath, "utf8");
+    return JSON.parse(raw) as Destination[];
+  });
 }
 
 export async function getDestinations(): Promise<Destination[]> {
   const destinations = await getStoredDestinations();
-  const reservations = hasDatabaseUrl() ? await getReservations() : [];
+  let reservations: Reservation[] = [];
+  if (hasDatabaseUrl()) {
+    try {
+      reservations = await getReservations();
+    } catch {
+      reservations = [];
+    }
+  }
   return destinations.map((destination) =>
     withAvailability(destination, reservations)
   );
 }
 
 export async function saveDestinations(destinations: Destination[]) {
-  await ensureDataDir();
-  await fs.writeFile(
-    destinationsPath,
-    JSON.stringify(destinations.map(persistDestination), null, 2),
-    "utf8"
-  );
+  const next = destinations.map(persistDestination);
+  await writeCms(CMS_KEYS.destinations, next, async () => {
+    await ensureDataDir();
+    await fs.writeFile(destinationsPath, JSON.stringify(next, null, 2), "utf8");
+  });
 }
 
 export async function getUsers(): Promise<User[]> {
@@ -209,27 +240,35 @@ async function writeJson<T>(filePath: string, value: T) {
 }
 
 export async function getTestimonials() {
-  return readJson<Testimonial[]>(testimonialsPath, []);
+  return readCms(CMS_KEYS.testimonials, () =>
+    readJson<Testimonial[]>(testimonialsPath, [])
+  );
 }
 
 export async function saveTestimonials(items: Testimonial[]) {
-  await writeJson(testimonialsPath, items);
+  await writeCms(CMS_KEYS.testimonials, items, () =>
+    writeJson(testimonialsPath, items)
+  );
 }
 
 export async function getInvites() {
-  return readJson<TestimonyInvite[]>(invitesPath, []);
+  return readCms(CMS_KEYS.invites, () =>
+    readJson<TestimonyInvite[]>(invitesPath, [])
+  );
 }
 
 export async function saveInvites(items: TestimonyInvite[]) {
-  await writeJson(invitesPath, items);
+  await writeCms(CMS_KEYS.invites, items, () => writeJson(invitesPath, items));
 }
 
 export async function getContactMessages() {
-  return readJson<ContactMessage[]>(messagesPath, []);
+  return readCms(CMS_KEYS.messages, () =>
+    readJson<ContactMessage[]>(messagesPath, [])
+  );
 }
 
 export async function saveContactMessages(items: ContactMessage[]) {
-  await writeJson(messagesPath, items);
+  await writeCms(CMS_KEYS.messages, items, () => writeJson(messagesPath, items));
 }
 
 export function createInviteToken() {
@@ -243,7 +282,9 @@ export const defaultHeroSettings: HeroSettings = {
 };
 
 export async function getHeroSettings(): Promise<HeroSettings> {
-  const stored = await readJson<Partial<HeroSettings> | null>(heroPath, null);
+  const stored = await readCms<Partial<HeroSettings> | null>(CMS_KEYS.hero, () =>
+    readJson<Partial<HeroSettings> | null>(heroPath, null)
+  );
   return {
     image: stored?.image?.trim() || defaultHeroSettings.image,
     video: stored?.video?.trim() || "",
@@ -254,7 +295,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
 }
 
 export async function saveHeroSettings(settings: HeroSettings) {
-  await writeJson(heroPath, settings);
+  await writeCms(CMS_KEYS.hero, settings, () => writeJson(heroPath, settings));
 }
 
 export async function savePublicFile(
@@ -295,29 +336,39 @@ export async function updateCustomTrip(item: CustomTripRequest) {
 }
 
 export async function getHistoryTrips() {
-  return readJson<HistoryTrip[]>(historyPath, []);
+  return readCms(CMS_KEYS.history, () => readJson<HistoryTrip[]>(historyPath, []));
 }
 
 export async function saveHistoryTrips(items: HistoryTrip[]) {
-  await writeJson(historyPath, items);
+  await writeCms(CMS_KEYS.history, items, () => writeJson(historyPath, items));
 }
 
+const emptyCatalog: PersonalizedCatalog = {
+  currency: "FCFA",
+  note: "",
+  accommodations: [],
+  vehicles: [],
+  cities: [],
+};
+
 export async function getPersonalizedCatalog() {
-  return readJson<PersonalizedCatalog>(personalizedCatalogPath, {
-    currency: "FCFA",
-    note: "",
-    accommodations: [],
-    vehicles: [],
-    cities: [],
-  });
+  const catalog = await readCms<PersonalizedCatalog | null>(
+    CMS_KEYS.personalizedCatalog,
+    () => readJson<PersonalizedCatalog | null>(personalizedCatalogPath, emptyCatalog)
+  );
+  return catalog ?? emptyCatalog;
 }
 
 export async function savePersonalizedCatalog(catalog: PersonalizedCatalog) {
-  await writeJson(personalizedCatalogPath, catalog);
+  await writeCms(CMS_KEYS.personalizedCatalog, catalog, () =>
+    writeJson(personalizedCatalogPath, catalog)
+  );
 }
 
 export async function getAboutPage(): Promise<AboutPage> {
-  const page = await readJson<AboutPage | null>(aboutPath, null);
+  const page = await readCms<AboutPage | null>(CMS_KEYS.about, () =>
+    readJson<AboutPage | null>(aboutPath, null)
+  );
   if (!page || !page.title) return defaultAbout;
   return {
     ...defaultAbout,
@@ -327,20 +378,22 @@ export async function getAboutPage(): Promise<AboutPage> {
 }
 
 export async function saveAboutPage(page: AboutPage) {
-  await writeJson(aboutPath, page);
+  await writeCms(CMS_KEYS.about, page, () => writeJson(aboutPath, page));
 }
 
 export async function getCampaigns(): Promise<Campaign[]> {
-  const items = await readJson<Campaign[]>(campaignsPath, []);
+  const items = await readCms(CMS_KEYS.campaigns, () =>
+    readJson<Campaign[]>(campaignsPath, [])
+  );
   const live = keepLiveCampaigns(items);
   if (live.length !== items.length) {
-    await writeJson(campaignsPath, live);
+    await saveCampaigns(live);
   }
   return live;
 }
 
 export async function saveCampaigns(items: Campaign[]) {
-  await writeJson(campaignsPath, items);
+  await writeCms(CMS_KEYS.campaigns, items, () => writeJson(campaignsPath, items));
 }
 
 export async function getClientNotes(): Promise<ClientNote[]> {
@@ -352,15 +405,21 @@ export async function upsertClientNote(note: ClientNote) {
 }
 
 export async function getShareLinks(): Promise<ShareLink[]> {
-  return readJson<ShareLink[]>(shareLinksPath, []);
+  return readCms(CMS_KEYS.shareLinks, () =>
+    readJson<ShareLink[]>(shareLinksPath, [])
+  );
 }
 
 export async function saveShareLinks(items: ShareLink[]) {
-  await writeJson(shareLinksPath, items);
+  await writeCms(CMS_KEYS.shareLinks, items, () =>
+    writeJson(shareLinksPath, items)
+  );
 }
 
 export async function getStoredMegaMenus(): Promise<MegaMenus> {
-  const stored = await readJson<Partial<MegaMenus> | null>(megaMenusPath, null);
+  const stored = await readCms<Partial<MegaMenus> | null>(CMS_KEYS.megaMenus, () =>
+    readJson<Partial<MegaMenus> | null>(megaMenusPath, null)
+  );
   return {
     destinations:
       stored?.destinations && stored.destinations.length > 0
@@ -378,5 +437,5 @@ export async function getMegaMenus(): Promise<MegaMenus> {
 }
 
 export async function saveMegaMenus(menus: MegaMenus) {
-  await writeJson(megaMenusPath, menus);
+  await writeCms(CMS_KEYS.megaMenus, menus, () => writeJson(megaMenusPath, menus));
 }

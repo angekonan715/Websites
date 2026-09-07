@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:up": "docker compose up -d",
-    "db:local": "node scripts/local-postgres.mjs"
+    "db:local": "node scripts/local-postgres.mjs",
+    "pull:live": "node scripts/pull-live-content.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.7",

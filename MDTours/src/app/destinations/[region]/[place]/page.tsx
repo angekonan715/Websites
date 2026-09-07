@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import { findMegaPlace, findMegaRegion } from "@/lib/megaMenus";
 import { getMegaMenus } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function DestinationPlacePage({
   params,
 }: {

@@ -5,6 +5,8 @@ import PageHero from "@/components/PageHero";
 import { findMegaRegion } from "@/lib/megaMenus";
 import { getMegaMenus } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function DestinationRegionPage({
   params,
 }: {

@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import PageHero from "@/components/PageHero";
 import { getHistoryTrips, getTestimonials } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 export default async function HistoriquePage() {
   const trips = (await getHistoryTrips()).sort((a, b) =>
     b.date.localeCompare(a.date)

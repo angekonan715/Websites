@@ -66,7 +66,32 @@
       "href": "/voyages/groupes",
       "image": "/images/cape-coast.png",
       "tagline": "Tous les séjours en petit groupe, prêts à réserver",
-      "destinations": []
+      "destinations": [
+        {
+          "id": "cape-coast",
+          "label": "L'escapade 6 : 22 au 27 Septembre 2026",
+          "href": "/voyages/cape-coast",
+          "image": "/media/images/cape-coast-1788786073197.jpg"
+        },
+        {
+          "id": "kwame-nkrumah",
+          "label": "La Téranga - 21 au 27 Septembre 2026",
+          "href": "/voyages/kwame-nkrumah",
+          "image": "/media/images/kwame-nkrumah-1788786881237.jpg"
+        },
+        {
+          "id": "akwaba",
+          "label": "La Téranga - 14 au 20 Octobre 2026",
+          "href": "/voyages/akwaba",
+          "image": "/media/images/akwaba-1788787268083.jpg"
+        },
+        {
+          "id": "boti-falls",
+          "label": "Weekend VSD - 16 au 18 Octobre",
+          "href": "/voyages/boti-falls",
+          "image": "/media/images/boti-falls-1788787563372.jpg"
+        }
+      ]
     },
     {
       "id": "personnalise",

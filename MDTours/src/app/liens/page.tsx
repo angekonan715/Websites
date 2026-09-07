@@ -7,6 +7,8 @@ export const metadata = {
   description: "Accédez aux voyages et pages MD Tours depuis Instagram ou TikTok.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function SocialLinksPage() {
   const links = (await getShareLinks()).filter((item) => item.active && item.showOnBio);
   const fallback = [
