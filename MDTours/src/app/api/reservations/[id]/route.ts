@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { sendTripConfirmationEmail } from "@/lib/email";
+import { isEmailConfigured, sendReservationStatusEmail } from "@/lib/email";
 import { isOwnBooking } from "@/lib/records";
 import { isInTrash } from "@/lib/reservationTrash";
 import {
@@ -108,6 +108,7 @@ export async function PATCH(
     }
   }
 
+  const previousStatus = reservation.status;
   const now = new Date().toISOString();
   reservation.status = body.status;
   reservation.updatedAt = now;
@@ -120,23 +121,29 @@ export async function PATCH(
 
   await updateReservation(reservation);
 
-  if (body.status === "payment_received") {
+  const statusChanged = previousStatus !== body.status;
+  if (statusChanged) {
     after(async () => {
       try {
         const destinations = await getDestinations();
         const destination = destinations.find(
           (item) => item.id === reservation.destinationId
         );
-        await sendTripConfirmationEmail(reservation, destination);
-        reservation.confirmationEmailSentAt = new Date().toISOString();
-        await updateReservation(reservation);
+        await sendReservationStatusEmail(reservation, destination);
+        if (body.status === "payment_received" || body.status === "confirmed") {
+          reservation.confirmationEmailSentAt = new Date().toISOString();
+          await updateReservation(reservation);
+        }
       } catch (error) {
-        console.error("Confirmation email failed:", error);
+        console.error("Reservation status email failed:", error);
       }
     });
   }
 
-  return NextResponse.json({ reservation });
+  return NextResponse.json({
+    reservation,
+    emailQueued: statusChanged && isEmailConfigured(),
+  });
 }
 
 export async function DELETE(

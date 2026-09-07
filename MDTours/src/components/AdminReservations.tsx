@@ -63,15 +63,28 @@ export default function AdminReservations() {
     });
     const data = (await response.json()) as {
       error?: string;
+      emailQueued?: boolean;
     };
     if (!response.ok) {
       setError(data.error ?? "Mise à jour impossible.");
       return;
     }
-    if (status === "payment_received") {
+    if (data.emailQueued) {
       setNotice(
-        "Paiement confirmé. L’email de confirmation est en cours d’envoi au client."
+        status === "payment_received"
+          ? "Paiement confirmé. Un email de récapitulatif est en cours d’envoi au client."
+          : status === "confirmed"
+            ? "Voyage confirmé. Un email de mise à jour a été envoyé au client."
+            : status === "cancelled"
+              ? "Dossier annulé. Le client a été prévenu par email."
+              : "Statut mis à jour. Le client a reçu un email avec le récapitulatif."
       );
+    } else if (status === "payment_received") {
+      setNotice(
+        "Paiement confirmé. L’email n’a pas pu être préparé : vérifiez SMTP_HOST, SMTP_USER et SMTP_PASS sur le serveur."
+      );
+    } else {
+      setNotice("Statut mis à jour.");
     }
     await load();
   }

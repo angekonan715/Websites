@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import { agencyContact, formatPrice } from "@/data/home";
-import type { CustomTripRequest, Destination, Reservation } from "@/lib/types";
+import { agencyContact, formatPrice, reservationStatusLabel } from "@/data/home";
+import type { CustomTripRequest, Destination, Reservation, ReservationStatus } from "@/lib/types";
 
 const SEND_TIMEOUT_MS = 12_000;
 
@@ -104,6 +104,118 @@ function itineraryHtml(destination?: Destination) {
     ${dayBlocks}
   `;
 }
+
+function siteUrl() {
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://www.voyagezmdtours.com").replace(
+    /\/$/,
+    ""
+  );
+}
+
+function formatDeparture(value?: string) {
+  if (!value) return "à confirmer";
+  const date = value.includes("T") ? new Date(value) : new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function reservationStatusText(status: ReservationStatus) {
+  return reservationStatusLabel[status] ?? status;
+}
+
+function reservationSummaryLines(reservation: Reservation, destination?: Destination) {
+  const dossierUrl = `${siteUrl()}/reservations/${reservation.id}`;
+  return [
+    `Référence : ${reservation.reference}`,
+    `Statut : ${reservationStatusText(reservation.status)}`,
+    `Voyage : ${reservation.destinationTitle}`,
+    reservation.country ? `Pays : ${reservation.country}` : "",
+    reservation.duration ? `Durée : ${reservation.duration}` : "",
+    `Date de départ : ${formatDeparture(reservation.departureDate)}`,
+    `Voyageurs : ${reservation.travelers}`,
+    `Prix unitaire : ${formatPrice(reservation.unitPrice)} FCFA`,
+    `Montant total : ${formatPrice(reservation.totalPrice)} FCFA`,
+    reservation.phone ? `Téléphone : ${reservation.phone}` : "",
+    reservation.email ? `Email : ${reservation.email}` : "",
+    reservation.notes ? `Note : ${reservation.notes}` : "",
+    destination?.location ? `Programme : ${destination.location}` : "",
+    "",
+    `Voir votre dossier : ${dossierUrl}`,
+  ].filter((line, index, lines) => line !== "" || lines[index + 1] !== "");
+}
+
+function reservationSummaryHtml(reservation: Reservation, destination?: Destination) {
+  const dossierUrl = `${siteUrl()}/reservations/${reservation.id}`;
+  const rows: [string, string][] = [
+    ["Référence", reservation.reference],
+    ["Statut", reservationStatusText(reservation.status)],
+    ["Voyage", reservation.destinationTitle],
+    ["Pays", reservation.country],
+    ["Durée", reservation.duration],
+    ["Date de départ", formatDeparture(reservation.departureDate)],
+    ["Voyageurs", String(reservation.travelers)],
+    ["Prix unitaire", `${formatPrice(reservation.unitPrice)} FCFA`],
+    ["Montant total", `${formatPrice(reservation.totalPrice)} FCFA`],
+    ["Téléphone", reservation.phone],
+    ["Email", reservation.email],
+    ["Note", reservation.notes],
+  ];
+  if (destination?.location) {
+    rows.push(["Lieu / programme", destination.location]);
+  }
+
+  const table = rows
+    .filter(([, value]) => Boolean(value?.trim?.() ?? value))
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:8px 0;color:#666;vertical-align:top">${escapeHtml(label)}</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(value)}</td></tr>`
+    )
+    .join("");
+
+  return `
+    <table style="width:100%;border-collapse:collapse;margin:20px 0">${table}</table>
+    <p style="margin:24px 0">
+      <a href="${escapeHtml(dossierUrl)}" style="display:inline-block;background:#D99B15;color:#fff;text-decoration:none;font-weight:bold;padding:12px 18px;border-radius:8px">
+        Voir mon dossier
+      </a>
+    </p>
+  `;
+}
+
+const statusEmailCopy: Record<
+  ReservationStatus,
+  { subject: string; title: string; intro: string }
+> = {
+  awaiting_contact: {
+    subject: "Mise à jour de votre réservation",
+    title: "Votre dossier a été mis à jour",
+    intro:
+      "Le statut de votre réservation a changé. Un conseiller MD Tours vous recontacte pour la suite.",
+  },
+  payment_received: {
+    subject: "Paiement confirmé",
+    title: "Votre paiement est confirmé",
+    intro:
+      "Nous avons bien reçu votre paiement. Voici le récapitulatif de votre réservation. Nous vous recontactons pour les derniers détails pratiques.",
+  },
+  confirmed: {
+    subject: "Voyage confirmé",
+    title: "Votre voyage est confirmé",
+    intro:
+      "Votre rendez-vous et votre voyage sont confirmés. Conservez ce récapitulatif : il reprend toutes les informations de votre dossier.",
+  },
+  cancelled: {
+    subject: "Réservation annulée",
+    title: "Votre réservation a été annulée",
+    intro:
+      "Votre dossier a été annulé. Si cela ne correspond pas à votre demande, contactez-nous rapidement.",
+  },
+};
 
 function fromAddress() {
   const user = process.env.SMTP_USER?.trim();
@@ -218,28 +330,21 @@ export async function sendTripInquiryEmail(
   });
 }
 
-export async function sendTripConfirmationEmail(
+export async function sendReservationStatusEmail(
   reservation: Reservation,
   destination?: Destination
 ) {
-  const departure = reservation.departureDate
-    ? new Date(`${reservation.departureDate}T00:00:00`).toLocaleDateString("fr-FR")
-    : "à confirmer";
+  const copy = statusEmailCopy[reservation.status] ?? statusEmailCopy.awaiting_contact;
   const from = fromAddress();
+  const summary = reservationSummaryLines(reservation, destination);
 
   const text = [
     `Bonjour ${reservation.name},`,
     "",
-    "MD Tours a bien reçu votre paiement. Votre voyage est confirmé.",
+    copy.intro,
     "",
-    `Référence : ${reservation.reference}`,
-    `Voyage : ${reservation.destinationTitle}`,
-    `Date de départ : ${departure}`,
-    `Voyageurs : ${reservation.travelers}`,
-    `Montant : ${formatPrice(reservation.totalPrice)} FCFA`,
+    ...summary,
     itineraryText(destination),
-    "",
-    "Nous vous recontactons pour les derniers détails pratiques.",
     "",
     `MD Tours — ${agencyContact.email} — ${agencyContact.phone}`,
   ].join("\n");
@@ -247,29 +352,30 @@ export async function sendTripConfirmationEmail(
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1A1A2E">
       <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
-      <h1 style="font-size:22px;margin:8px 0 16px">Votre voyage est confirmé</h1>
+      <h1 style="font-size:22px;margin:8px 0 16px">${escapeHtml(copy.title)}</h1>
       <p>Bonjour ${escapeHtml(reservation.name)},</p>
-      <p>Nous avons bien reçu votre paiement. <strong>Votre voyage est confirmé.</strong></p>
-      <table style="width:100%;border-collapse:collapse;margin:20px 0">
-        <tr><td style="padding:8px 0;color:#666">Référence</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(reservation.reference)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Voyage</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(reservation.destinationTitle)}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Départ</td><td style="padding:8px 0;font-weight:bold">${departure}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Voyageurs</td><td style="padding:8px 0;font-weight:bold">${reservation.travelers}</td></tr>
-        <tr><td style="padding:8px 0;color:#666">Montant</td><td style="padding:8px 0;font-weight:bold">${formatPrice(reservation.totalPrice)} FCFA</td></tr>
-      </table>
+      <p>${escapeHtml(copy.intro)}</p>
+      ${reservationSummaryHtml(reservation, destination)}
       ${itineraryHtml(destination)}
-      <p>Nous vous recontactons pour les derniers détails pratiques.</p>
-      <p style="font-size:13px;color:#666">MD Tours<br>${agencyContact.email}<br>${agencyContact.phone}</p>
+      <p style="font-size:13px;color:#666">MD Tours<br>${escapeHtml(agencyContact.email)}<br>${escapeHtml(agencyContact.phone)}</p>
     </div>
   `;
 
   await sendMail({
     from,
     to: reservation.email,
-    subject: `Votre voyage est confirmé — ${reservation.reference}`,
+    cc: agencyInbox(),
+    subject: `${copy.subject} — ${reservation.reference}`,
     text,
     html,
   });
+}
+
+export async function sendTripConfirmationEmail(
+  reservation: Reservation,
+  destination?: Destination
+) {
+  await sendReservationStatusEmail(reservation, destination);
 }
 
 export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
