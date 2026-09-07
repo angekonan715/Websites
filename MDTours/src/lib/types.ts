@@ -201,6 +201,7 @@ export interface Reservation {
   paymentConfirmedAt?: string;
   appointmentConfirmedAt?: string;
   confirmationEmailSentAt?: string;
+  deletedAt?: string;
 }
 
 export interface Testimonial {

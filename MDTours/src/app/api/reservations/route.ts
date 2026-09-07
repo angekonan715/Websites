@@ -4,6 +4,7 @@ import { sendTripInquiryEmail } from "@/lib/email";
 import { tripUnitPrice } from "@/lib/pricing";
 import {
   createBookingReference,
+  getDeletedReservations,
   getDestinations,
   getReservations,
   insertReservation,
@@ -11,13 +12,18 @@ import {
 import { isOwnBooking } from "@/lib/records";
 import type { Reservation } from "@/lib/types";
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Connexion requise." }, { status: 401 });
   }
 
-  const reservations = await getReservations();
+  const trash = new URL(request.url).searchParams.get("view") === "trash";
+  if (trash && user.role !== "admin") {
+    return NextResponse.json({ error: "Accès administrateur requis." }, { status: 403 });
+  }
+
+  const reservations = trash ? await getDeletedReservations() : await getReservations();
   const visible =
     user.role === "admin"
       ? reservations

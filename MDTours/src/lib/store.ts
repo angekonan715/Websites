@@ -11,6 +11,7 @@ import {
   dbGetCustomTrips,
   dbGetReservationById,
   dbGetReservations,
+  dbPurgeExpiredReservations,
   dbGetUserByEmail,
   dbGetUserById,
   dbGetUsers,
@@ -25,6 +26,7 @@ import {
   hasDatabaseUrl,
 } from "./db";
 import { saveRawUpload } from "./media";
+import { isInTrash, RESERVATION_TRASH_DAYS } from "./reservationTrash";
 import type {
   AboutPage,
   Campaign,
@@ -199,12 +201,61 @@ export function toPublicUser(user: User) {
   };
 }
 
-export async function getReservations(): Promise<Reservation[]> {
-  return dbGetReservations();
+async function purgeExpiredTrash() {
+  const cutoff = new Date(
+    Date.now() - RESERVATION_TRASH_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+  await dbPurgeExpiredReservations(cutoff);
 }
 
-export async function getReservationById(id: string) {
-  return dbGetReservationById(id);
+export async function getReservations(options?: {
+  includeDeleted?: boolean;
+}): Promise<Reservation[]> {
+  try {
+    await purgeExpiredTrash();
+  } catch {
+    // Listing still works if purge cannot run yet.
+  }
+  const reservations = await dbGetReservations();
+  if (options?.includeDeleted) return reservations;
+  return reservations.filter((item) => !isInTrash(item));
+}
+
+export async function getDeletedReservations(): Promise<Reservation[]> {
+  const reservations = await getReservations({ includeDeleted: true });
+  return reservations
+    .filter((item) => isInTrash(item))
+    .sort((a, b) => (b.deletedAt ?? "").localeCompare(a.deletedAt ?? ""));
+}
+
+export async function getReservationById(
+  id: string,
+  options?: { includeDeleted?: boolean }
+) {
+  const reservation = await dbGetReservationById(id);
+  if (!reservation) return null;
+  if (!options?.includeDeleted && isInTrash(reservation)) return null;
+  return reservation;
+}
+
+export async function softDeleteReservation(id: string) {
+  const reservation = await dbGetReservationById(id);
+  if (!reservation) return null;
+  const now = new Date().toISOString();
+  reservation.deletedAt = now;
+  reservation.updatedAt = now;
+  await updateReservation(reservation);
+  return reservation;
+}
+
+export async function restoreReservation(id: string) {
+  const reservation = await dbGetReservationById(id);
+  if (!reservation) return null;
+  const now = new Date().toISOString();
+  reservation.deletedAt = undefined;
+  reservation.updatedAt = now;
+  await updateReservation(reservation);
+  return reservation;
 }
 
 export async function insertReservation(item: Reservation) {

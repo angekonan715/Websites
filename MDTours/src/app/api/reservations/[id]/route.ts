@@ -2,7 +2,14 @@ import { after, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { sendTripConfirmationEmail } from "@/lib/email";
 import { isOwnBooking } from "@/lib/records";
-import { getDestinations, getReservationById, updateReservation } from "@/lib/store";
+import { isInTrash } from "@/lib/reservationTrash";
+import {
+  getDestinations,
+  getReservationById,
+  restoreReservation,
+  softDeleteReservation,
+  updateReservation,
+} from "@/lib/store";
 import type { ReservationStatus } from "@/lib/types";
 
 const allowedStatuses: ReservationStatus[] = [
@@ -22,7 +29,9 @@ export async function GET(
   }
 
   const { id } = await context.params;
-  const reservation = await getReservationById(id);
+  const reservation = await getReservationById(id, {
+    includeDeleted: user.role === "admin",
+  });
 
   if (!reservation) {
     return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
@@ -44,14 +53,28 @@ export async function PATCH(
   }
 
   const { id } = await context.params;
-  const body = (await request.json()) as { status?: ReservationStatus };
+  const body = (await request.json()) as { status?: ReservationStatus; restore?: boolean };
+  if (body.restore) {
+    const restored = await restoreReservation(id);
+    if (!restored) {
+      return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
+    }
+    return NextResponse.json({ reservation: restored });
+  }
+
   if (!body.status || !allowedStatuses.includes(body.status)) {
     return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
   }
 
-  const reservation = await getReservationById(id);
+  const reservation = await getReservationById(id, { includeDeleted: true });
   if (!reservation) {
     return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
+  }
+  if (isInTrash(reservation)) {
+    return NextResponse.json(
+      { error: "Cette réservation est dans la corbeille. Restaurez-la avant de la modifier." },
+      { status: 400 }
+    );
   }
 
   if (body.status === "confirmed" && reservation.status !== "payment_received") {
@@ -114,4 +137,26 @@ export async function PATCH(
   }
 
   return NextResponse.json({ reservation });
+}
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return NextResponse.json({ error: "Accès administrateur requis." }, { status: 403 });
+  }
+
+  const { id } = await context.params;
+  const reservation = await getReservationById(id, { includeDeleted: true });
+  if (!reservation) {
+    return NextResponse.json({ error: "Réservation introuvable." }, { status: 404 });
+  }
+  if (isInTrash(reservation)) {
+    return NextResponse.json({ reservation });
+  }
+
+  const deleted = await softDeleteReservation(id);
+  return NextResponse.json({ reservation: deleted });
 }

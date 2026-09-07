@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Download, Phone, Search } from "lucide-react";
+import { Download, Phone, RotateCcw, Search, Trash2 } from "lucide-react";
 import { formatPrice, reservationStatusLabel } from "@/data/home";
 import { downloadCsv, formatAdminDate } from "@/lib/csv";
 import { clientKey, groupBookingsByTrip, isPaidReservation } from "@/lib/records";
+import { RESERVATION_TRASH_DAYS, trashDaysLeft } from "@/lib/reservationTrash";
 import type { Reservation, ReservationStatus } from "@/lib/types";
 
 type BookingFilter = "all" | "awaiting_contact" | "payment_received" | "confirmed" | "cancelled";
-type DeskView = "bookings" | "confirmed" | "roster";
+type DeskView = "bookings" | "confirmed" | "roster" | "trash";
 
 const filters: { id: BookingFilter; label: string }[] = [
   { id: "all", label: "Tous les dossiers" },
@@ -27,17 +28,25 @@ function statusClass(status: ReservationStatus) {
 
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [trashed, setTrashed] = useState<Reservation[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<BookingFilter>("all");
   const [view, setView] = useState<DeskView>("bookings");
   const [openId, setOpenId] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Reservation | null>(null);
+  const [busy, setBusy] = useState(false);
 
   async function load() {
-    const response = await fetch("/api/reservations");
-    const data = (await response.json()) as { reservations?: Reservation[] };
-    setReservations(data.reservations ?? []);
+    const [liveResponse, trashResponse] = await Promise.all([
+      fetch("/api/reservations"),
+      fetch("/api/reservations?view=trash"),
+    ]);
+    const live = (await liveResponse.json()) as { reservations?: Reservation[] };
+    const trash = (await trashResponse.json()) as { reservations?: Reservation[] };
+    setReservations(live.reservations ?? []);
+    setTrashed(trash.reservations ?? []);
   }
 
   useEffect(() => {
@@ -64,6 +73,45 @@ export default function AdminReservations() {
         "Paiement confirmé. L’email de confirmation est en cours d’envoi au client."
       );
     }
+    await load();
+  }
+
+  async function moveToTrash() {
+    if (!pendingDelete) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    const response = await fetch(`/api/reservations/${pendingDelete.id}`, {
+      method: "DELETE",
+    });
+    const data = (await response.json()) as { error?: string };
+    setBusy(false);
+    if (!response.ok) {
+      setError(data.error ?? "Suppression impossible.");
+      return;
+    }
+    setPendingDelete(null);
+    setOpenId("");
+    setNotice(
+      `La réservation ${pendingDelete.reference} est dans la corbeille pour ${RESERVATION_TRASH_DAYS} jours.`
+    );
+    await load();
+  }
+
+  async function restoreFromTrash(id: string) {
+    setError("");
+    setNotice("");
+    const response = await fetch(`/api/reservations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ restore: true }),
+    });
+    const data = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setError(data.error ?? "Restauration impossible.");
+      return;
+    }
+    setNotice("La réservation a été restaurée dans les dossiers.");
     await load();
   }
 
@@ -174,6 +222,15 @@ export default function AdminReservations() {
         </button>
         <button
           type="button"
+          onClick={() => setView("trash")}
+          className={`rounded-full px-4 py-2 text-xs font-semibold ${
+            view === "trash" ? "bg-navy text-white" : "bg-white text-navy shadow-card"
+          }`}
+        >
+          Corbeille{trashed.length ? ` (${trashed.length})` : ""}
+        </button>
+        <button
+          type="button"
           onClick={exportCsv}
           className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-navy"
         >
@@ -189,7 +246,76 @@ export default function AdminReservations() {
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
-      {view === "confirmed" || view === "roster" ? (
+      {view === "trash" ? (
+        <div className="mt-5">
+          <p className="mb-4 text-sm text-gray-500">
+            Les dossiers restent ici {RESERVATION_TRASH_DAYS} jours, puis ils sont
+            supprimés définitivement.
+          </p>
+          {trashed.length === 0 ? (
+            <p className="rounded-2xl bg-white p-6 text-sm text-gray-500 shadow-card">
+              La corbeille est vide.
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-2xl bg-white shadow-card">
+              <div className="overflow-x-auto">
+                <table className="min-w-[860px] w-full text-left text-sm">
+                  <thead className="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-400">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold">Réf.</th>
+                      <th className="px-4 py-3 font-semibold">Client</th>
+                      <th className="px-4 py-3 font-semibold">Voyage</th>
+                      <th className="px-4 py-3 font-semibold">Supprimée le</th>
+                      <th className="px-4 py-3 font-semibold">Conservation</th>
+                      <th className="px-4 py-3 font-semibold"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trashed.map((item) => {
+                      const days = item.deletedAt ? trashDaysLeft(item.deletedAt) : 0;
+                      return (
+                        <tr key={item.id} className="border-t border-gray-100">
+                          <td className="px-4 py-3 text-xs font-bold text-gold">
+                            {item.reference}
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="font-semibold text-navy">{item.name}</p>
+                            <p className="text-xs text-gray-500">{item.phone}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="font-semibold text-navy">{item.destinationTitle}</p>
+                            <p className="text-[11px] text-gray-400">{item.country}</p>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">
+                            {item.deletedAt ? formatAdminDate(item.deletedAt.slice(0, 10)) : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-500">
+                            {days > 1
+                              ? `${days} jours restants`
+                              : days === 1
+                                ? "1 jour restant"
+                                : "Suppression imminente"}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => void restoreFromTrash(item.id)}
+                              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-navy"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              Restaurer
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : view === "confirmed" || view === "roster" ? (
         <div className="mt-5 space-y-4">
           {(view === "confirmed" ? confirmedGroups : rosterGroups).length === 0 ? (
             <p className="rounded-2xl bg-white p-6 text-sm text-gray-500 shadow-card">
@@ -369,6 +495,14 @@ export default function AdminReservations() {
                                       Annuler
                                     </button>
                                   )}
+                                  <button
+                                    type="button"
+                                    onClick={() => setPendingDelete(item)}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 font-semibold text-red-700"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    Supprimer
+                                  </button>
                                 </div>
                               </div>
                             ) : null}
@@ -400,6 +534,49 @@ export default function AdminReservations() {
           )}
         </>
       )}
+
+      {pendingDelete ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-reservation-title"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-card"
+          >
+            <h2 id="delete-reservation-title" className="text-lg font-bold text-navy">
+              Mettre cette réservation à la corbeille ?
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-gray-600">
+              Dossier <strong>{pendingDelete.reference}</strong> de{" "}
+              <strong>{pendingDelete.name}</strong> ({pendingDelete.destinationTitle}).
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-600">
+              Elle ne disparaîtra pas tout de suite : elle reste dans la corbeille{" "}
+              <strong>{RESERVATION_TRASH_DAYS} jours</strong>. Vous pourrez la restaurer
+              pendant cette période. Ensuite, elle sera supprimée définitivement.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setPendingDelete(null)}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-navy"
+              >
+                Non, garder
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void moveToTrash()}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {busy ? "En cours..." : "Oui, mettre à la corbeille"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

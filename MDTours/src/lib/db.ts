@@ -41,10 +41,13 @@ CREATE TABLE IF NOT EXISTS reservations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   payment_confirmed_at TIMESTAMPTZ,
   appointment_confirmed_at TIMESTAMPTZ,
-  confirmation_email_sent_at TIMESTAMPTZ
+  confirmation_email_sent_at TIMESTAMPTZ,
+  deleted_at TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS reservations_user_id_idx ON reservations (user_id);
 CREATE INDEX IF NOT EXISTS reservations_email_idx ON reservations (email);
+ALTER TABLE reservations ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS reservations_deleted_at_idx ON reservations (deleted_at);
 
 CREATE TABLE IF NOT EXISTS custom_trips (
   id TEXT PRIMARY KEY,
@@ -404,6 +407,7 @@ type ReservationRow = {
   payment_confirmed_at: Date | string | null;
   appointment_confirmed_at: Date | string | null;
   confirmation_email_sent_at: Date | string | null;
+  deleted_at: Date | string | null;
 };
 
 function mapReservation(row: ReservationRow): Reservation {
@@ -430,6 +434,7 @@ function mapReservation(row: ReservationRow): Reservation {
     paymentConfirmedAt: iso(row.payment_confirmed_at),
     appointmentConfirmedAt: iso(row.appointment_confirmed_at),
     confirmationEmailSentAt: iso(row.confirmation_email_sent_at),
+    deletedAt: iso(row.deleted_at),
   };
 }
 
@@ -508,9 +513,10 @@ async function insertReservationRow(item: Reservation, run: QueryFn) {
     `INSERT INTO reservations (
       id, reference, user_id, destination_id, destination_title, country, duration, image,
       name, email, phone, departure_date, travelers, unit_price, total_price, notes, status,
-      created_at, updated_at, payment_confirmed_at, appointment_confirmed_at, confirmation_email_sent_at
+      created_at, updated_at, payment_confirmed_at, appointment_confirmed_at, confirmation_email_sent_at,
+      deleted_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
     )
     ON CONFLICT (id) DO NOTHING`,
     [
@@ -536,6 +542,7 @@ async function insertReservationRow(item: Reservation, run: QueryFn) {
       item.paymentConfirmedAt ?? null,
       item.appointmentConfirmedAt ?? null,
       item.confirmationEmailSentAt ?? null,
+      item.deletedAt ?? null,
     ]
   );
 }
@@ -647,7 +654,7 @@ export async function dbUpdateReservation(item: Reservation) {
       duration = $7, image = $8, name = $9, email = $10, phone = $11, departure_date = $12,
       travelers = $13, unit_price = $14, total_price = $15, notes = $16, status = $17,
       updated_at = $18, payment_confirmed_at = $19, appointment_confirmed_at = $20,
-      confirmation_email_sent_at = $21
+      confirmation_email_sent_at = $21, deleted_at = $22
      WHERE id = $1`,
     [
       item.id,
@@ -671,8 +678,19 @@ export async function dbUpdateReservation(item: Reservation) {
       item.paymentConfirmedAt ?? null,
       item.appointmentConfirmedAt ?? null,
       item.confirmationEmailSentAt ?? null,
+      item.deletedAt ?? null,
     ]
   );
+}
+
+export async function dbPurgeExpiredReservations(olderThanIso: string) {
+  await query(`DELETE FROM reservations WHERE deleted_at IS NOT NULL AND deleted_at < $1`, [
+    olderThanIso,
+  ]);
+}
+
+export async function dbDeleteReservation(id: string) {
+  await query(`DELETE FROM reservations WHERE id = $1`, [id]);
 }
 
 export async function dbGetCustomTrips() {
