@@ -14,4 +14,4 @@ ENV HOSTNAME=0.0.0.0
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "mkdir -p data/uploads/images data/uploads/video data/uploads/background && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["sh", "-c", "node scripts/seed-uploads.mjs && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]

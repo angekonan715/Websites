@@ -17,7 +17,7 @@ Comptes, réservations, voyages, menus, à propos, hero, campagnes et le reste d
 
 - **En local :** `npm run dev` démarre une base Postgres fichier (PGlite) sur le port 54329. Rien d’autre à installer.
 - **Postgres réel (Docker) :** `npm run db:up` puis `DATABASE_URL=postgresql://mdtours:mdtours@localhost:5432/mdtours` dans `.env.local`.
-- **Railway :** ajoutez le plugin PostgreSQL (`DATABASE_URL` est injecté). Au premier démarrage, les JSON existants sont importés une seule fois. Ajoutez un volume monté sur `/app/data/uploads` pour que les photos survivent aux déploiements.
+- **Railway :** ajoutez le plugin PostgreSQL (`DATABASE_URL` est injecté). Au premier démarrage, les JSON existants sont importés une seule fois. Ajoutez un volume monté sur **`/app/data/uploads`** (pas `/app/data`) pour que les nouvelles photos admin survivent aux déploiements. Un volume vide cache les fichiers de l’image Docker : les photos déjà publiées sont recopiées depuis `data/media-seed` au démarrage.
 - Copier le contenu du site en ligne dans les JSON locaux : `npm run pull:live`.
 
 ## Comptes

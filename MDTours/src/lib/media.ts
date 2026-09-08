@@ -19,6 +19,19 @@ export const MAX_VIDEO_BYTES = 80 * 1024 * 1024;
 const IMAGE_NAME = /\.(jpe?g|png|webp|gif|avif|heic|heif|bmp)$/i;
 const VIDEO_NAME = /\.(mp4|webm|mov|m4v)$/i;
 const UPLOAD_ROOT = path.join(process.cwd(), "data", "uploads");
+const SEED_ROOT = path.join(process.cwd(), "data", "media-seed");
+
+function resolveUnderRoot(root: string, segments: string[]) {
+  const parts = segments.filter((part) => part && part !== ".." && part !== ".");
+  if (parts.length < 2) return null;
+  const filePath = path.join(root, ...parts);
+  const resolvedRoot = path.resolve(root);
+  const resolvedFile = path.resolve(filePath);
+  if (!resolvedFile.startsWith(resolvedRoot + path.sep) && resolvedFile !== resolvedRoot) {
+    return null;
+  }
+  return filePath;
+}
 
 export function isUploadedFile(value: FormDataEntryValue | null): value is File {
   if (!value || typeof value === "string") return false;
@@ -54,14 +67,11 @@ export function resolveStoredPath(storedPath: string) {
 }
 
 export function resolveUploadPath(segments: string[]) {
-  const parts = segments.filter((part) => part && part !== ".." && part !== ".");
-  if (parts.length < 2) return null;
-  const filePath = path.join(UPLOAD_ROOT, ...parts);
-  const root = path.resolve(UPLOAD_ROOT);
-  if (!path.resolve(filePath).startsWith(root + path.sep) && path.resolve(filePath) !== root) {
-    return null;
-  }
-  return filePath;
+  return resolveUnderRoot(UPLOAD_ROOT, segments);
+}
+
+export function resolveSeedPath(segments: string[]) {
+  return resolveUnderRoot(SEED_ROOT, segments);
 }
 
 export function mimeForFile(filePath: string) {

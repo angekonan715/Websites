@@ -67,6 +67,14 @@ function localPathFor(urlPath) {
   return path.join(ROOT, "public", ...relative.split("/"));
 }
 
+function seedPathFor(urlPath) {
+  const relative = urlPath.replace(/^\/+/, "");
+  if (relative.startsWith("media/")) {
+    return path.join(ROOT, "data", "media-seed", ...relative.split("/").slice(1));
+  }
+  return null;
+}
+
 async function saveJson(filename, value) {
   const filePath = path.join(ROOT, "data", filename);
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
@@ -83,6 +91,11 @@ async function download(urlPath) {
   }
   const buffer = Buffer.from(await response.arrayBuffer());
   await writeFile(dest, buffer);
+  const seedDest = seedPathFor(urlPath);
+  if (seedDest) {
+    await mkdir(path.dirname(seedDest), { recursive: true });
+    await writeFile(seedDest, buffer);
+  }
   console.log(`downloaded ${urlPath} (${buffer.length} bytes)`);
 }
 
