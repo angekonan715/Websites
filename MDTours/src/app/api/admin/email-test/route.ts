@@ -12,7 +12,7 @@ export async function POST() {
     return NextResponse.json(
       {
         error:
-          "SMTP n’est pas configuré. Sur Railway, ajoutez SMTP_HOST, SMTP_USER et SMTP_PASS.",
+          "Email non configuré. Sur Railway Hobby, ajoutez RESEND_API_KEY. Sur Railway Pro, SMTP_HOST / SMTP_USER / SMTP_PASS suffisent.",
       },
       { status: 400 }
     );

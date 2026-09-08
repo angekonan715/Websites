@@ -99,8 +99,9 @@ export default function AdminPassword() {
       <div className="mt-6 max-w-md rounded-2xl bg-white p-5 shadow-card">
         <h2 className="text-sm font-bold text-navy">Test d’envoi email</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Envoie un message de test à {user?.email}. Faites-le après un déploiement
-          Railway, une fois SMTP_HOST, SMTP_USER et SMTP_PASS enregistrés.
+          Envoie un message de test à {user?.email}. Sur Railway Hobby, SMTP Zoho
+          est bloqué : utilisez RESEND_API_KEY. Sur Railway Pro, SMTP_HOST /
+          SMTP_USER / SMTP_PASS suffisent.
         </p>
         <button
           type="button"

@@ -4,6 +4,12 @@ import { agencyContact, formatPrice, reservationStatusLabel } from "@/data/home"
 import type { CustomTripRequest, Destination, Reservation, ReservationStatus } from "@/lib/types";
 
 const ATTEMPT_TIMEOUT_MS = 8_000;
+const RAILWAY_SMTP_BLOCKED =
+  "Railway bloque l’envoi SMTP (ports 465 et 587) sur les plans Free et Hobby. Ce n’est pas le mot de passe Zoho. Deux options : passer le projet Railway en Pro puis redéployer, ou ajouter RESEND_API_KEY (envoi HTTPS, fonctionne sur Hobby).";
+
+function resendApiKey() {
+  return process.env.RESEND_API_KEY?.trim() || "";
+}
 
 function smtpCredentials() {
   const user = process.env.SMTP_USER?.trim();
@@ -11,6 +17,58 @@ function smtpCredentials() {
   const host = process.env.SMTP_HOST?.trim();
   if (!host || !user || !pass) return null;
   return { host, user, pass };
+}
+
+function addressList(value: nodemailer.SendMailOptions["to"]) {
+  if (!value) return [];
+  const items = Array.isArray(value) ? value : [value];
+  return items
+    .map((item) => {
+      if (typeof item === "string") return item.trim();
+      if (item && typeof item === "object" && "address" in item) {
+        return String(item.address || "").trim();
+      }
+      return "";
+    })
+    .filter(Boolean);
+}
+
+async function sendViaResend(options: nodemailer.SendMailOptions) {
+  const apiKey = resendApiKey();
+  const to = addressList(options.to);
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY manquante.");
+  }
+  if (!to.length) {
+    throw new Error("Destinataire email manquant.");
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: String(options.from || fromAddress()),
+      to,
+      ...(addressList(options.cc).length ? { cc: addressList(options.cc) } : {}),
+      ...(addressList(options.replyTo)[0]
+        ? { reply_to: addressList(options.replyTo)[0] }
+        : {}),
+      subject: String(options.subject || ""),
+      text: typeof options.text === "string" ? options.text : undefined,
+      html: typeof options.html === "string" ? options.html : undefined,
+    }),
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as {
+    message?: string;
+    name?: string;
+  };
+  if (!response.ok) {
+    throw new Error(payload.message || payload.name || `Resend HTTP ${response.status}`);
+  }
 }
 
 function createTransporter(host: string, user: string, pass: string, port: number) {
@@ -53,10 +111,16 @@ function smtpErrorMessage(error: unknown, host: string, port: number) {
 }
 
 async function sendMail(options: nodemailer.SendMailOptions) {
+  if (resendApiKey()) {
+    await sendViaResend(options);
+    console.info("Email sent via Resend HTTPS");
+    return;
+  }
+
   const creds = smtpCredentials();
   if (!creds) {
     throw new Error(
-      "Email non envoyé : configurez SMTP_HOST, SMTP_USER et SMTP_PASS."
+      "Email non envoyé : sur Railway Hobby, ajoutez RESEND_API_KEY. Sinon configurez SMTP_HOST, SMTP_USER et SMTP_PASS (Railway Pro uniquement)."
     );
   }
 
@@ -77,6 +141,11 @@ async function sendMail(options: nodemailer.SendMailOptions) {
     }
   }
 
+  const timedOut = failures.every((line) => /timeout|ETIMEDOUT|ECONNRESET|ENETUNREACH/i.test(line));
+  if (timedOut) {
+    throw new Error(RAILWAY_SMTP_BLOCKED);
+  }
+
   throw new Error(`Envoi email impossible. ${failures.join(" | ")}`);
 }
 
@@ -91,6 +160,7 @@ export async function sendTestEmail(to: string) {
 }
 
 export function isEmailConfigured() {
+  if (resendApiKey()) return true;
   return Boolean(
     process.env.SMTP_HOST?.trim() &&
       process.env.SMTP_USER?.trim() &&

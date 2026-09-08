@@ -29,7 +29,7 @@ Comptes, réservations, voyages, menus, à propos, hero, campagnes et le reste d
 
 Après connexion admin, ouvrez [http://localhost:3000/admin](http://localhost:3000/admin) pour publier un nouveau voyage. Le mot de passe se change dans **Admin → Mot de passe**.
 
-Mot de passe oublié : [Connexion → Mot de passe oublié](http://localhost:3000/connexion/mot-de-passe-oublie). Un email est envoyé si `SMTP_HOST`, `SMTP_USER` et `SMTP_PASS` sont configurés.
+Mot de passe oublié : [Connexion → Mot de passe oublié](http://localhost:3000/connexion/mot-de-passe-oublie). En local, SMTP Zoho fonctionne. Sur Railway Hobby, SMTP est bloqué : ajoutez `RESEND_API_KEY`. Sur Railway Pro, `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` suffisent.
 
 ## Ajouter des images et des vidéos
 
