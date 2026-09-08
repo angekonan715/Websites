@@ -2,7 +2,7 @@ import nodemailer from "nodemailer";
 import { agencyContact, formatPrice, reservationStatusLabel } from "@/data/home";
 import type { CustomTripRequest, Destination, Reservation, ReservationStatus } from "@/lib/types";
 
-const SEND_TIMEOUT_MS = 25_000;
+const ATTEMPT_TIMEOUT_MS = 8_000;
 
 function smtpCredentials() {
   const user = process.env.SMTP_USER?.trim();
@@ -20,22 +20,35 @@ function createTransporter(host: string, user: string, pass: string, port: numbe
     secure,
     requireTLS: !secure,
     family: 4,
-    connectionTimeout: SEND_TIMEOUT_MS,
-    greetingTimeout: SEND_TIMEOUT_MS,
-    socketTimeout: SEND_TIMEOUT_MS,
+    connectionTimeout: ATTEMPT_TIMEOUT_MS,
+    greetingTimeout: ATTEMPT_TIMEOUT_MS,
+    socketTimeout: ATTEMPT_TIMEOUT_MS,
     auth: { user, pass },
     tls: {
       minVersion: "TLSv1.2",
       servername: host,
+      rejectUnauthorized: true,
     },
   });
 }
 
-function smtpPorts(host: string) {
+function smtpTargets(primaryHost: string) {
   const configured = Number(process.env.SMTP_PORT || 0);
-  const preferred = configured === 465 || configured === 587 ? configured : host.includes("zoho") ? 465 : 587;
-  const fallback = preferred === 465 ? 587 : 465;
-  return [preferred, fallback];
+  const preferred = configured === 465 || configured === 587 ? configured : 465;
+  const ports = preferred === 465 ? [465, 587] : [587, 465];
+  const hosts = new Set<string>([primaryHost]);
+  if (primaryHost.includes("zoho.com") && !primaryHost.includes("smtppro")) {
+    hosts.add(primaryHost.replace("smtp.", "smtppro."));
+  }
+  if (primaryHost.includes("smtppro.zoho.")) {
+    hosts.add(primaryHost.replace("smtppro.", "smtp."));
+  }
+  return [...hosts].flatMap((host) => ports.map((port) => ({ host, port })));
+}
+
+function smtpErrorMessage(error: unknown, host: string, port: number) {
+  const raw = error instanceof Error ? error.message : String(error);
+  return `${host}:${port} — ${raw}`;
 }
 
 async function sendMail(options: nodemailer.SendMailOptions) {
@@ -46,24 +59,34 @@ async function sendMail(options: nodemailer.SendMailOptions) {
     );
   }
 
-  const ports = smtpPorts(creds.host);
-  let lastError: unknown;
-  for (const port of ports) {
-    const transporter = createTransporter(creds.host, creds.user, creds.pass, port);
+  const attempts = smtpTargets(creds.host);
+  const failures: string[] = [];
+  for (const attempt of attempts) {
+    const transporter = createTransporter(attempt.host, creds.user, creds.pass, attempt.port);
     try {
       await transporter.sendMail(options);
+      console.info(`SMTP sent via ${attempt.host}:${attempt.port}`);
       return;
     } catch (error) {
-      lastError = error;
-      console.error(`SMTP send failed on ${creds.host}:${port}`, error);
+      const detail = smtpErrorMessage(error, attempt.host, attempt.port);
+      failures.push(detail);
+      console.error(`SMTP send failed on ${detail}`);
     } finally {
       transporter.close();
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("Délai d’envoi email dépassé.");
+  throw new Error(`Envoi email impossible. ${failures.join(" | ")}`);
+}
+
+export async function sendTestEmail(to: string) {
+  await sendMail({
+    from: fromAddress(),
+    to,
+    subject: "Test SMTP MD Tours",
+    text: "Ceci est un email de test. Si vous le recevez, l’envoi Zoho fonctionne.",
+    html: "<p>Ceci est un email de test. Si vous le recevez, l’envoi Zoho fonctionne.</p>",
+  });
 }
 
 export function isEmailConfigured() {

@@ -11,6 +11,7 @@ export default function AdminPassword() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -94,6 +95,41 @@ export default function AdminPassword() {
           {saving ? "Enregistrement..." : "Enregistrer le mot de passe"}
         </button>
       </form>
+
+      <div className="mt-6 max-w-md rounded-2xl bg-white p-5 shadow-card">
+        <h2 className="text-sm font-bold text-navy">Test d’envoi email</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Envoie un message de test à {user?.email}. Faites-le après un déploiement
+          Railway, une fois SMTP_HOST, SMTP_USER et SMTP_PASS enregistrés.
+        </p>
+        <button
+          type="button"
+          disabled={testingEmail}
+          onClick={() => {
+            void (async () => {
+              setError("");
+              setNotice("");
+              setTestingEmail(true);
+              try {
+                const response = await fetch("/api/admin/email-test", { method: "POST" });
+                const data = (await response.json()) as { error?: string };
+                if (!response.ok) {
+                  setError(data.error ?? "Test email impossible.");
+                  return;
+                }
+                setNotice("Email de test envoyé. Vérifiez la boîte de réception et les indésirables.");
+              } catch {
+                setError("Test email impossible.");
+              } finally {
+                setTestingEmail(false);
+              }
+            })();
+          }}
+          className="btn-gold mt-3 w-fit"
+        >
+          {testingEmail ? "Envoi du test..." : "Envoyer un email de test"}
+        </button>
+      </div>
     </section>
   );
 }
