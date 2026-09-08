@@ -77,13 +77,6 @@ export async function PATCH(
     );
   }
 
-  if (body.status === "confirmed" && reservation.status !== "payment_received") {
-    return NextResponse.json(
-      { error: "Confirmez d'abord le paiement avant le rendez-vous." },
-      { status: 400 }
-    );
-  }
-
   const occupying =
     body.status === "payment_received" || body.status === "confirmed";
   const alreadyOccupying =

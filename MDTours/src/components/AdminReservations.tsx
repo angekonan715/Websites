@@ -19,6 +19,13 @@ const filters: { id: BookingFilter; label: string }[] = [
   { id: "cancelled", label: "Annulés" },
 ];
 
+const statusOptions: { id: ReservationStatus; label: string }[] = [
+  { id: "awaiting_contact", label: reservationStatusLabel.awaiting_contact },
+  { id: "payment_received", label: reservationStatusLabel.payment_received },
+  { id: "confirmed", label: reservationStatusLabel.confirmed },
+  { id: "cancelled", label: reservationStatusLabel.cancelled },
+];
+
 function statusClass(status: ReservationStatus) {
   if (status === "confirmed") return "bg-emerald-50 text-emerald-800";
   if (status === "payment_received") return "bg-gold/10 text-navy";
@@ -375,8 +382,22 @@ export default function AdminReservations() {
                             <td className="py-2.5 font-semibold text-navy">
                               {formatPrice(item.totalPrice)} FCFA
                             </td>
-                            <td className="py-2.5 text-xs text-gray-600">
-                              {reservationStatusLabel[item.status]}
+                            <td className="py-2.5">
+                              <select
+                                value={item.status}
+                                aria-label={`Statut de ${item.reference}`}
+                                onChange={(event) => {
+                                  const next = event.target.value as ReservationStatus;
+                                  if (next !== item.status) void updateStatus(item.id, next);
+                                }}
+                                className="max-w-[14rem] rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-navy outline-none focus:border-gold"
+                              >
+                                {statusOptions.map((option) => (
+                                  <option key={option.id} value={option.id}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
                             </td>
                             <td className="py-2.5 text-xs text-gold">{item.reference}</td>
                           </tr>
@@ -467,6 +488,23 @@ export default function AdminReservations() {
                                   {formatPrice(isPaidReservation(item.status) ? item.totalPrice : 0)}{" "}
                                   FCFA
                                 </p>
+                                <label className="block pt-1 font-semibold text-navy">
+                                  Modifier le statut
+                                  <select
+                                    value={item.status}
+                                    onChange={(event) => {
+                                      const next = event.target.value as ReservationStatus;
+                                      if (next !== item.status) void updateStatus(item.id, next);
+                                    }}
+                                    className="mt-1 w-full max-w-xs rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-navy outline-none focus:border-gold"
+                                  >
+                                    {statusOptions.map((option) => (
+                                      <option key={option.id} value={option.id}>
+                                        {option.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
                                 <div className="flex flex-wrap gap-2 pt-1">
                                   <a
                                     href={`tel:${item.phone}`}
@@ -532,10 +570,22 @@ export default function AdminReservations() {
                           <td className="px-4 py-3 font-semibold text-navy">
                             {formatPrice(item.totalPrice)} FCFA
                           </td>
-                          <td className="px-4 py-3">
-                            <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusClass(item.status)}`}>
-                              {reservationStatusLabel[item.status]}
-                            </span>
+                          <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>
+                            <select
+                              value={item.status}
+                              aria-label={`Statut de ${item.reference}`}
+                              onChange={(event) => {
+                                const next = event.target.value as ReservationStatus;
+                                if (next !== item.status) void updateStatus(item.id, next);
+                              }}
+                              className={`w-full min-w-[11rem] rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold outline-none ${statusClass(item.status)}`}
+                            >
+                              {statusOptions.map((option) => (
+                                <option key={option.id} value={option.id}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
                           </td>
                         </tr>
                       );
