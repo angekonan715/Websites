@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import { agencyContact, formatPrice, reservationStatusLabel } from "@/data/home";
 import type { CustomTripRequest, Destination, Reservation, ReservationStatus } from "@/lib/types";
 
@@ -14,12 +15,11 @@ function smtpCredentials() {
 
 function createTransporter(host: string, user: string, pass: string, port: number) {
   const secure = port === 465;
-  return nodemailer.createTransport({
+  const options: SMTPTransport.Options = {
     host,
     port,
     secure,
     requireTLS: !secure,
-    family: 4,
     connectionTimeout: ATTEMPT_TIMEOUT_MS,
     greetingTimeout: ATTEMPT_TIMEOUT_MS,
     socketTimeout: ATTEMPT_TIMEOUT_MS,
@@ -29,7 +29,8 @@ function createTransporter(host: string, user: string, pass: string, port: numbe
       servername: host,
       rejectUnauthorized: true,
     },
-  });
+  };
+  return nodemailer.createTransport(options);
 }
 
 function smtpTargets(primaryHost: string) {
