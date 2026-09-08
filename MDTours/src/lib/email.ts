@@ -239,8 +239,26 @@ function reservationStatusText(status: ReservationStatus) {
   return reservationStatusLabel[status] ?? status;
 }
 
-function reservationSummaryLines(reservation: Reservation, destination?: Destination) {
-  const dossierUrl = `${siteUrl()}/reservations/${reservation.id}`;
+function reservationLink(reservation: Reservation) {
+  return `${siteUrl()}/reservations/${reservation.id}`;
+}
+
+function viewReservationButton(url: string) {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0">
+      <tr>
+        <td align="left" bgcolor="#1A1A2E" style="background-color:#1A1A2E">
+          <a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 26px;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:0.6px;color:#ffffff;text-decoration:none;font-weight:bold">
+            Voir la réservation
+          </a>
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function reservationSummaryLines(reservation: Reservation) {
+  const dossierUrl = reservationLink(reservation);
   return [
     `Référence : ${reservation.reference}`,
     `Statut : ${reservationStatusText(reservation.status)}`,
@@ -249,19 +267,14 @@ function reservationSummaryLines(reservation: Reservation, destination?: Destina
     reservation.duration ? `Durée : ${reservation.duration}` : "",
     `Date de départ : ${formatDeparture(reservation.departureDate)}`,
     `Voyageurs : ${reservation.travelers}`,
-    `Prix unitaire : ${formatPrice(reservation.unitPrice)} FCFA`,
     `Montant total : ${formatPrice(reservation.totalPrice)} FCFA`,
-    reservation.phone ? `Téléphone : ${reservation.phone}` : "",
-    reservation.email ? `Email : ${reservation.email}` : "",
-    reservation.notes ? `Note : ${reservation.notes}` : "",
-    destination?.location ? `Programme : ${destination.location}` : "",
     "",
-    `Voir votre dossier : ${dossierUrl}`,
+    `Voir la réservation : ${dossierUrl}`,
   ].filter((line, index, lines) => line !== "" || lines[index + 1] !== "");
 }
 
-function reservationSummaryHtml(reservation: Reservation, destination?: Destination) {
-  const dossierUrl = `${siteUrl()}/reservations/${reservation.id}`;
+function reservationSummaryHtml(reservation: Reservation) {
+  const dossierUrl = reservationLink(reservation);
   const rows: [string, string][] = [
     ["Référence", reservation.reference],
     ["Statut", reservationStatusText(reservation.status)],
@@ -270,31 +283,23 @@ function reservationSummaryHtml(reservation: Reservation, destination?: Destinat
     ["Durée", reservation.duration],
     ["Date de départ", formatDeparture(reservation.departureDate)],
     ["Voyageurs", String(reservation.travelers)],
-    ["Prix unitaire", `${formatPrice(reservation.unitPrice)} FCFA`],
     ["Montant total", `${formatPrice(reservation.totalPrice)} FCFA`],
-    ["Téléphone", reservation.phone],
-    ["Email", reservation.email],
-    ["Note", reservation.notes],
   ];
-  if (destination?.location) {
-    rows.push(["Lieu / programme", destination.location]);
-  }
 
   const table = rows
     .filter(([, value]) => Boolean(value?.trim?.() ?? value))
     .map(
-      ([label, value]) =>
-        `<tr><td style="padding:8px 0;color:#666;vertical-align:top">${escapeHtml(label)}</td><td style="padding:8px 0;font-weight:bold">${escapeHtml(value)}</td></tr>`
+      ([label, value], index, list) =>
+        `<tr>
+          <td valign="top" width="130" bgcolor="#ffffff" style="padding:10px 16px 10px 0;border-bottom:${index === list.length - 1 ? "0" : "1px solid #ececec"};color:#6b7280;font-size:12px;font-family:Arial,Helvetica,sans-serif">${escapeHtml(label)}</td>
+          <td valign="top" bgcolor="#ffffff" style="padding:10px 0;border-bottom:${index === list.length - 1 ? "0" : "1px solid #ececec"};color:#111827;font-size:14px;line-height:1.5;font-family:Arial,Helvetica,sans-serif">${escapeHtml(value)}</td>
+        </tr>`
     )
     .join("");
 
   return `
-    <table style="width:100%;border-collapse:collapse;margin:20px 0">${table}</table>
-    <p style="margin:24px 0">
-      <a href="${escapeHtml(dossierUrl)}" style="display:inline-block;background:#D99B15;color:#fff;text-decoration:none;font-weight:bold;padding:12px 18px;border-radius:8px">
-        Voir mon dossier
-      </a>
-    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="width:100%;border-collapse:collapse;margin:4px 0 8px">${table}</table>
+    ${viewReservationButton(dossierUrl)}
   `;
 }
 
@@ -514,11 +519,11 @@ export async function sendTripInquiryEmail(
 
 export async function sendReservationStatusEmail(
   reservation: Reservation,
-  destination?: Destination
+  _destination?: Destination
 ) {
   const copy = statusEmailCopy[reservation.status] ?? statusEmailCopy.awaiting_contact;
   const from = fromAddress();
-  const summary = reservationSummaryLines(reservation, destination);
+  const summary = reservationSummaryLines(reservation);
 
   const text = [
     `Bonjour ${reservation.name},`,
@@ -526,21 +531,35 @@ export async function sendReservationStatusEmail(
     copy.intro,
     "",
     ...summary,
-    itineraryText(destination),
     "",
     `MD Tours — ${agencyContact.email} — ${agencyContact.phone}`,
   ].join("\n");
 
   const html = `
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1A1A2E">
-      <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
-      <h1 style="font-size:22px;margin:8px 0 16px">${escapeHtml(copy.title)}</h1>
-      <p>Bonjour ${escapeHtml(reservation.name)},</p>
-      <p>${escapeHtml(copy.intro)}</p>
-      ${reservationSummaryHtml(reservation, destination)}
-      ${itineraryHtml(destination)}
-      <p style="font-size:13px;color:#666">MD Tours<br>${escapeHtml(agencyContact.email)}<br>${escapeHtml(agencyContact.phone)}</p>
-    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#f3f4f6" style="background-color:#f3f4f6;margin:0;padding:0">
+      <tr>
+        <td align="center" bgcolor="#f3f4f6" style="padding:24px 12px">
+          <table role="presentation" width="560" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="width:100%;max-width:560px;background-color:#ffffff;border:1px solid #e5e7eb">
+            <tr>
+              <td bgcolor="#1A1A2E" style="padding:12px 32px;background-color:#1A1A2E">
+                <p style="margin:0;color:#D99B15;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;letter-spacing:2.5px">MD TOURS</p>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#ffffff" style="padding:28px 32px 32px;font-family:Arial,Helvetica,sans-serif;color:#111827;background-color:#ffffff">
+                <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:normal;color:#1A1A2E">${escapeHtml(copy.title)}</h1>
+                <p style="margin:0 0 10px;font-size:15px;line-height:1.6;color:#111827">Bonjour ${escapeHtml(reservation.name)},</p>
+                <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#374151">${escapeHtml(copy.intro)}</p>
+                ${reservationSummaryHtml(reservation)}
+                <p style="margin:28px 0 0;padding-top:18px;border-top:1px solid #ececec;font-size:12px;line-height:1.6;color:#6b7280">
+                  MD Tours<br>${escapeHtml(agencyContact.email)}<br>${escapeHtml(agencyContact.phone)}
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   `;
 
   await sendMail({
