@@ -8,23 +8,31 @@ import { clientKey, groupBookingsByTrip, isPaidReservation } from "@/lib/records
 import { RESERVATION_TRASH_DAYS, trashDaysLeft } from "@/lib/reservationTrash";
 import type { Reservation, ReservationStatus } from "@/lib/types";
 
-type BookingFilter = "all" | "awaiting_contact" | "payment_received" | "confirmed" | "cancelled";
+type BookingFilter = "all" | "awaiting_contact" | "payment_received" | "cancelled";
 type DeskView = "bookings" | "confirmed" | "roster" | "trash";
 
 const filters: { id: BookingFilter; label: string }[] = [
   { id: "all", label: "Tous les dossiers" },
   { id: "awaiting_contact", label: "En attente" },
   { id: "payment_received", label: "Payés" },
-  { id: "confirmed", label: "Confirmés" },
   { id: "cancelled", label: "Annulés" },
 ];
 
-const statusOptions: { id: ReservationStatus; label: string }[] = [
-  { id: "awaiting_contact", label: reservationStatusLabel.awaiting_contact },
-  { id: "payment_received", label: reservationStatusLabel.payment_received },
-  { id: "confirmed", label: reservationStatusLabel.confirmed },
-  { id: "cancelled", label: reservationStatusLabel.cancelled },
-];
+const assignableStatuses: ReservationStatus[] = ["payment_received", "cancelled"];
+
+function statusChoices(current: ReservationStatus) {
+  const choices: { id: ReservationStatus; label: string }[] = [
+    { id: "payment_received", label: reservationStatusLabel.payment_received },
+    { id: "cancelled", label: reservationStatusLabel.cancelled },
+  ];
+  if (!assignableStatuses.includes(current)) {
+    return [
+      { id: current, label: reservationStatusLabel[current] ?? current },
+      ...choices,
+    ];
+  }
+  return choices;
+}
 
 function statusClass(status: ReservationStatus) {
   if (status === "confirmed") return "bg-emerald-50 text-emerald-800";
@@ -140,7 +148,7 @@ export default function AdminReservations() {
     return {
       total: reservations.length,
       awaiting: reservations.filter((item) => item.status === "awaiting_contact").length,
-      confirmed: reservations.filter((item) => item.status === "confirmed").length,
+      confirmed: reservations.filter((item) => isPaidReservation(item.status)).length,
       revenue: paid.reduce((sum, item) => sum + item.totalPrice, 0),
     };
   }, [reservations]);
@@ -148,7 +156,10 @@ export default function AdminReservations() {
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return reservations.filter((item) => {
-      if (filter !== "all" && item.status !== filter) return false;
+      if (filter === "payment_received" && !isPaidReservation(item.status)) return false;
+      if (filter !== "all" && filter !== "payment_received" && item.status !== filter) {
+        return false;
+      }
       if (!needle) return true;
       return [
         item.reference,
@@ -165,7 +176,7 @@ export default function AdminReservations() {
   }, [reservations, filter, query]);
 
   const confirmedGroups = useMemo(
-    () => groupBookingsByTrip(reservations.filter((item) => item.status === "confirmed")),
+    () => groupBookingsByTrip(reservations.filter((item) => isPaidReservation(item.status))),
     [reservations]
   );
   const rosterGroups = useMemo(() => groupBookingsByTrip(reservations), [reservations]);
@@ -392,7 +403,7 @@ export default function AdminReservations() {
                                 }}
                                 className="max-w-[14rem] rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs text-navy outline-none focus:border-gold"
                               >
-                                {statusOptions.map((option) => (
+                                {statusChoices(item.status).map((option) => (
                                   <option key={option.id} value={option.id}>
                                     {option.label}
                                   </option>
@@ -498,7 +509,7 @@ export default function AdminReservations() {
                                     }}
                                     className="mt-1 w-full max-w-xs rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-navy outline-none focus:border-gold"
                                   >
-                                    {statusOptions.map((option) => (
+                                    {statusChoices(item.status).map((option) => (
                                       <option key={option.id} value={option.id}>
                                         {option.label}
                                       </option>
@@ -528,16 +539,7 @@ export default function AdminReservations() {
                                       Confirmer le paiement
                                     </button>
                                   )}
-                                  {item.status === "payment_received" && (
-                                    <button
-                                      type="button"
-                                      onClick={() => void updateStatus(item.id, "confirmed")}
-                                      className="btn-gold px-3 py-1"
-                                    >
-                                      Confirmer le voyage
-                                    </button>
-                                  )}
-                                  {item.status !== "cancelled" && item.status !== "confirmed" && (
+                                  {item.status !== "cancelled" && (
                                     <button
                                       type="button"
                                       onClick={() => void updateStatus(item.id, "cancelled")}
@@ -580,7 +582,7 @@ export default function AdminReservations() {
                               }}
                               className={`w-full min-w-[11rem] rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold outline-none ${statusClass(item.status)}`}
                             >
-                              {statusOptions.map((option) => (
+                              {statusChoices(item.status).map((option) => (
                                 <option key={option.id} value={option.id}>
                                   {option.label}
                                 </option>

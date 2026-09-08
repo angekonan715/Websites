@@ -344,6 +344,59 @@ function agencyInbox() {
   );
 }
 
+function sameEmail(a?: string, b?: string) {
+  return Boolean(a && b && a.trim().toLowerCase() === b.trim().toLowerCase());
+}
+
+function adminUrl(category: string) {
+  return `${siteUrl()}/admin?c=${encodeURIComponent(category)}`;
+}
+
+function brandedHtml(title: string, body: string) {
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;color:#1A1A2E">
+      <p style="color:#D99B15;font-weight:bold;letter-spacing:2px;font-size:12px">MD TOURS</p>
+      <h1 style="font-size:20px;margin:8px 0 16px">${escapeHtml(title)}</h1>
+      ${body}
+    </div>
+  `;
+}
+
+async function sendAgencyNotice(options: {
+  subject: string;
+  title: string;
+  lines: string[];
+  adminPath: string;
+  replyTo?: string;
+}) {
+  const inbox = agencyInbox();
+  if (options.replyTo && sameEmail(options.replyTo, inbox)) return;
+
+  const adminLink = adminUrl(options.adminPath);
+  const text = [...options.lines, "", `Admin : ${adminLink}`].join("\n");
+  const rows = options.lines
+    .map((line) => `<p style="margin:0 0 10px;line-height:1.5">${escapeHtml(line)}</p>`)
+    .join("");
+  const html = brandedHtml(
+    options.title,
+    `${rows}
+    <p style="margin:24px 0 0">
+      <a href="${escapeHtml(adminLink)}" style="display:inline-block;background:#D99B15;color:#fff;text-decoration:none;font-weight:bold;padding:10px 16px;border-radius:8px">
+        Ouvrir l’admin
+      </a>
+    </p>`
+  );
+
+  await sendMail({
+    from: fromAddress(),
+    to: inbox,
+    replyTo: options.replyTo,
+    subject: options.subject,
+    text,
+    html,
+  });
+}
+
 export async function sendContactMessageEmail(options: {
   name: string;
   email: string;
@@ -434,11 +487,29 @@ export async function sendTripInquiryEmail(
   await sendMail({
     from,
     to: reservation.email,
-    cc: agencyInbox(),
     subject: `Votre voyage MD Tours — ${reservation.reference}`,
     text,
     html,
   });
+
+  try {
+    await sendAgencyNotice({
+      subject: `Nouvelle réservation — ${reservation.reference}`,
+      title: "Nouvelle demande",
+      lines: [
+        `${reservation.name} vient de s’inscrire.`,
+        `Réf. ${reservation.reference}`,
+        reservation.destinationTitle,
+        `${reservation.travelers} voyageur${reservation.travelers > 1 ? "s" : ""} · ${formatPrice(reservation.totalPrice)} FCFA`,
+        reservation.phone ? `Tél. ${reservation.phone}` : "",
+        reservation.email,
+      ].filter(Boolean),
+      adminPath: "reservations",
+      replyTo: reservation.email,
+    });
+  } catch (error) {
+    console.error("Agency booking notice failed:", error);
+  }
 }
 
 export async function sendReservationStatusEmail(
@@ -475,11 +546,28 @@ export async function sendReservationStatusEmail(
   await sendMail({
     from,
     to: reservation.email,
-    cc: agencyInbox(),
     subject: `${copy.subject} — ${reservation.reference}`,
     text,
     html,
   });
+
+  try {
+    await sendAgencyNotice({
+      subject: `${reservation.reference} — ${reservationStatusText(reservation.status)}`,
+      title: "Statut mis à jour",
+      lines: [
+        `${reservation.name} · ${reservation.reference}`,
+        reservation.destinationTitle,
+        reservationStatusText(reservation.status),
+        reservation.phone ? `Tél. ${reservation.phone}` : "",
+        reservation.email,
+      ].filter(Boolean),
+      adminPath: "reservations",
+      replyTo: reservation.email,
+    });
+  } catch (error) {
+    console.error("Agency status notice failed:", error);
+  }
 }
 
 export async function sendTripConfirmationEmail(
@@ -544,11 +632,29 @@ export async function sendCustomTripQuoteEmail(trip: CustomTripRequest) {
   await sendMail({
     from,
     to: trip.email,
-    cc: agencyInbox(),
     subject: `Votre devis MD Tours — ${trip.reference}`,
     text,
     html,
   });
+
+  try {
+    await sendAgencyNotice({
+      subject: `Nouveau devis — ${trip.reference}`,
+      title: "Voyage personnalisé",
+      lines: [
+        `${trip.name} a reçu un devis.`,
+        `Réf. ${trip.reference}`,
+        trip.destination,
+        `${departure} → ${back}`,
+        `Total ${formatPrice(trip.quote?.total ?? 0)} FCFA`,
+        trip.email,
+      ],
+      adminPath: "personnalise",
+      replyTo: trip.email,
+    });
+  } catch (error) {
+    console.error("Agency quote notice failed:", error);
+  }
 }
 
 function escapeHtml(value: string) {

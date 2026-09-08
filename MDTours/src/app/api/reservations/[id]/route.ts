@@ -12,12 +12,7 @@ import {
 } from "@/lib/store";
 import type { ReservationStatus } from "@/lib/types";
 
-const allowedStatuses: ReservationStatus[] = [
-  "awaiting_contact",
-  "payment_received",
-  "confirmed",
-  "cancelled",
-];
+const allowedStatuses: ReservationStatus[] = ["payment_received", "cancelled"];
 
 export async function GET(
   _request: Request,
@@ -63,7 +58,13 @@ export async function PATCH(
   }
 
   if (!body.status || !allowedStatuses.includes(body.status)) {
-    return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
+    return NextResponse.json(
+      {
+        error:
+          "Choisissez Paiement confirmé ou Annulée. Le rendez-vous confirmé n’est plus utilisé, et un dossier ne peut pas revenir en attente de contact.",
+      },
+      { status: 400 }
+    );
   }
 
   const reservation = await getReservationById(id, { includeDeleted: true });
