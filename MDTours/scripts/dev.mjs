@@ -73,6 +73,18 @@ if (isLocalDatabaseUrl(configuredUrl)) {
   }
 }
 
+if (process.env.SKIP_LIVE_SYNC !== "1") {
+  await new Promise((resolve) => {
+    const sync = spawn(
+      process.execPath,
+      [path.join("scripts", "sync-from-live.mjs"), "--optional"],
+      { cwd: ROOT, stdio: "inherit", env: process.env }
+    );
+    sync.on("close", () => resolve());
+    sync.on("error", () => resolve());
+  });
+}
+
 const next = spawn("npx", ["next", "dev"], {
   cwd: ROOT,
   stdio: "inherit",

@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import pg from "pg";
 
-const SITE = process.env.LIVE_SITE_URL || "https://voyagezmdtours.com";
+const SITE = process.env.LIVE_SITE_URL || "https://www.voyagezmdtours.com";
 const ROOT = process.cwd();
 
 const ENDPOINTS = [
@@ -197,6 +197,9 @@ if (databaseUrl) {
       );
     }
     console.log(`updated ${docs.length} CMS documents in local Postgres`);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn(`local Postgres not updated (${detail}). JSON and photos are still saved.`);
   } finally {
     await pool.end();
   }

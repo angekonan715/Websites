@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+`npm run dev` starts the local database, then copies the **live** voyages, menus, pages and photos from voyagezmdtours.com into this folder. Preview at [http://localhost:3000](http://localhost:3000) matches the published site (not live reservations). On Windows PowerShell use `npm.cmd run dev`. To skip the copy: `SKIP_LIVE_SYNC=1 npm run dev`. `npm run sync` does the copy without starting the site.
 
 ## Base de données
 
@@ -18,7 +18,7 @@ Comptes, réservations, voyages, menus, à propos, hero, campagnes et le reste d
 - **En local :** `npm run dev` démarre une base Postgres fichier (PGlite) sur le port 54329. Rien d’autre à installer.
 - **Postgres réel (Docker) :** `npm run db:up` puis `DATABASE_URL=postgresql://mdtours:mdtours@localhost:5432/mdtours` dans `.env.local`.
 - **Railway :** ajoutez le plugin PostgreSQL (`DATABASE_URL` est injecté). Au premier démarrage, les JSON existants sont importés une seule fois. Ajoutez un volume monté sur **`/app/data/uploads`** (pas `/app/data`) pour que les nouvelles photos admin survivent aux déploiements. Un volume vide cache les fichiers de l’image Docker : les photos déjà publiées sont recopiées depuis `data/media-seed` au démarrage.
-- Copier le contenu du site en ligne dans les JSON locaux : `npm run pull:live`.
+- Copier le contenu du site en ligne ici : `npm run sync` (JSON + photos). Un déploiement Railway **n’écrase pas** les voyages déjà en base : le JSON n’est importé que si la clé CMS est vide.
 
 ## Comptes
 

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
 import Footer from "@/components/Footer";
+import SiteChat from "@/components/SiteChat";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,6 +40,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Footer />
+          <SiteChat />
         </AuthProvider>
       </body>
     </html>

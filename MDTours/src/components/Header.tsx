@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { ChevronDown, Menu, MessageCircle, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Logo from "./Logo";
 import AuthMenu from "./AuthMenu";
 import AdminViewSwitcher from "./AdminViewSwitcher";
 import CampaignTicker from "./CampaignTicker";
 import NavMegaMenu from "./NavMegaMenu";
+import WhatsAppIcon from "./WhatsAppIcon";
 import { agencyContact, navLinks } from "@/data/home";
 import { defaultMegaMenus } from "@/lib/megaMenus";
 import type { MegaMenuKey, MegaMenuRegion, MegaMenus } from "@/lib/types";
@@ -165,7 +166,7 @@ export default function Header({ variant = "overlay", initialMenus }: HeaderProp
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/70 text-white transition-colors hover:border-gold hover:text-gold sm:h-10 sm:w-10"
               aria-label="WhatsApp"
             >
-              <MessageCircle className="h-5 w-5" />
+              <WhatsAppIcon className="h-5 w-5" />
             </a>
             <a
               href="/voyages"

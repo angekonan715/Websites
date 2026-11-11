@@ -1,0 +1,19 @@
+---
+description: Pull live MD Tours CMS and photos before editing so deploys do not overwrite the owner's work
+alwaysApply: true
+---
+
+# Always start from the live website
+
+The owner edits trips, photos, menus, and pages in **Admin on voyagezmdtours.com**. That content lives in Railway Postgres and the photo volume, not in GitHub.
+
+`npm run dev` (via `scripts/dev.mjs`) starts local Postgres, then copies live CMS + photos into this folder and into local Postgres. That is the default. Do not skip it unless the user is offline (`SKIP_LIVE_SYNC=1`).
+
+Before changing this project:
+
+1. Prefer `npm.cmd run dev` on Windows so preview matches the live site.
+2. Treat `data/*.json` and `data/media-seed/` as the current live content after that start.
+3. Change **code** only unless the user asked to edit a trip. Do not invent destinations, hero, or menus.
+4. Deploying code does **not** wipe live CMS. Railway imports JSON only when a CMS key is empty.
+
+Reservations and client accounts stay on Railway. Local preview can show live trips with empty local bookings.
